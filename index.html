@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>6S Plant Audit & Management Sheet</title>
-  <!-- Tailwind CSS & FontAwesome CDN -->
+  <!-- Tailwind CSS, FontAwesome, & Chart.js CDNs -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,7 +24,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
-  <!-- TOP NAVBAR -->
+  <!-- TOP NAVIGATION HEADER -->
   <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30 no-print">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
@@ -37,13 +37,13 @@
         </div>
       </div>
 
-      <!-- Controls & Language Selector -->
+      <!-- Control Buttons & Language Selector -->
       <div class="flex items-center space-x-3">
-        <!-- Language Switcher -->
+        <!-- Bilingual Language Switcher -->
         <div class="bg-slate-800 border border-slate-700 rounded-lg p-1 flex text-xs font-semibold">
-          <button onclick="setLanguage('en')" id="lang-btn-en" class="px-3 py-1.5 rounded-md transition-all bg-blue-600 text-white">ENG</button>
+          <button onclick="setLanguage('en')" id="lang-btn-en" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">ENG</button>
           <button onclick="setLanguage('ur')" id="lang-btn-ur" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">اردو</button>
-          <button onclick="setLanguage('dual')" id="lang-btn-dual" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">Dual / دونوں</button>
+          <button onclick="setLanguage('dual')" id="lang-btn-dual" class="px-3 py-1.5 rounded-md transition-all bg-blue-600 text-white font-bold">Dual / دونوں</button>
         </div>
 
         <button onclick="saveCurrentAudit()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition">
@@ -66,17 +66,16 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- AUDIT HEADER METADATA -->
+    <!-- AUDIT METADATA HEADER -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
       <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
         <i class="fa-solid fa-circle-info text-blue-600"></i>
-        <span class="lang-en">Audit Information</span>
-        <span class="lang-ur urdu-text hidden">آڈٹ کی معلومات</span>
+        <span>Audit Metadata / آڈٹ کی معلومات</span>
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">Plant Location / مقام</label>
-          <input type="text" id="plantLocation" value="Main Manufacturing Plant" class="w-full text-sm font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+          <input type="text" id="plantLocation" value="Main Packaging Plant" class="w-full text-sm font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">Auditor Name / آڈیٹر کا نام</label>
@@ -88,7 +87,7 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Audit Date / تاریخ</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Date / تاریخ</label>
             <input type="date" id="auditDate" class="w-full text-sm font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
           <div>
@@ -103,7 +102,7 @@
       </div>
     </div>
 
-    <!-- MAIN INTERACTIVE GRID (NAVBAR + QUESTION SHEET + ANALYTICS) -->
+    <!-- MAIN AUDIT LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
       <!-- LEFT SIDEBAR: 9 PLANT AREAS -->
@@ -111,22 +110,22 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
-            <span class="text-blue-600 font-bold" id="area-count-tag">9 Areas</span>
+            <span class="text-blue-600 font-bold">9 Areas</span>
           </h3>
           <div class="space-y-1.5" id="areaNavList">
-            <!-- Dynamic Plant Area Navigation Buttons populated by JS -->
+            <!-- Dynamic Plant Area Navigation -->
           </div>
         </div>
 
-        <!-- OVERALL AUDIT SCORE SUMMARY -->
+        <!-- OVERALL AUDIT SCORE CARD -->
         <div class="bg-slate-900 text-white rounded-xl p-5 shadow-sm text-center">
-          <div class="text-xs uppercase font-bold text-slate-400 mb-1">Plant 6S Rating</div>
-          <div class="text-4xl font-extrabold text-emerald-400" id="overallScoreDisplay">0%</div>
+          <div class="text-xs uppercase font-bold text-slate-400 mb-1">Plant Overall 6S Rating</div>
+          <div class="text-4xl font-extrabold text-emerald-400" id="overallScoreDisplay">100%</div>
           <p class="text-xs text-slate-400 mt-2" id="scoreStatusText">Audit in Progress</p>
         </div>
       </div>
 
-      <!-- CENTER: QUESTION CHECKLIST SECTION -->
+      <!-- CENTER: QUESTION SHEET -->
       <div class="lg:col-span-6 space-y-6">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-5">
@@ -139,16 +138,15 @@
             </div>
           </div>
 
-          <!-- Dynamic 6S Pillar Questions Container -->
-          <div class="space-y-6" id="questionsContainer">
-            <!-- Questions rendered via JS -->
+          <!-- 6S Questions Container -->
+          <div class="space-y-5" id="questionsContainer">
+            <!-- Questions dynamically generated -->
           </div>
         </div>
       </div>
 
-      <!-- RIGHT SIDEBAR: REAL-TIME RADAR CHART & CAPA PLANNER -->
+      <!-- RIGHT SIDEBAR: RADAR CHART & CAPA STATUS -->
       <div class="lg:col-span-3 space-y-6">
-        <!-- Radar Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">6S Pillar Performance</h3>
           <div class="w-full h-56">
@@ -156,19 +154,18 @@
           </div>
         </div>
 
-        <!-- Dynamic CAPA Summary Box -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active CAPA Items</h3>
             <span id="capaCountBadge" class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">0 Items</span>
           </div>
-          <p class="text-xs text-slate-500 mb-3">Questions scored &lt; 3 generate automatic Corrective Action plans below.</p>
+          <p class="text-xs text-slate-500">Scoring &lt; 3 points generates automatic Corrective Action requirements with Before/After photos below.</p>
         </div>
       </div>
 
     </div>
 
-    <!-- CAPA & PHOTO PROOF SECTION (PRINT & WEB) -->
+    <!-- CAPA & BEFORE/AFTER PHOTO PROOF TABLE -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
         <div>
@@ -186,19 +183,14 @@
             <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold">
               <th class="p-3">Pillar & Area</th>
               <th class="p-3">Defect / Issue Identified</th>
-              <th class="p-3">Before Photo (خرابی)</th>
+              <th class="p-3">Before Photo (خرابی کی تصویر)</th>
               <th class="p-3">Corrective Action & Owner</th>
-              <th class="p-3">After Photo (اصلاح)</th>
+              <th class="p-3">After Photo (اصلاح کی تصویر)</th>
               <th class="p-3 text-center">Status</th>
             </tr>
           </thead>
           <tbody id="capaTableBody">
-            <tr>
-              <td colspan="6" class="p-6 text-center text-slate-400">
-                <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-2 block"></i>
-                No CAPA items currently flagged for this area!
-              </td>
-            </tr>
+            <!-- Dynamic CAPA Rows -->
           </tbody>
         </table>
       </div>
@@ -227,15 +219,14 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <!-- COMPLETE LOGIC ENGINE -->
   <script>
-    // DATA MATRIX FOR ALL 9 PLANT AREAS & TAILORED 6S QUESTIONS
+    // DATA MATRIX FOR ALL 9 PLANT AREAS & QUESTIONS
     const PLANT_AREAS = [
       {
         id: "corrugation",
         nameEn: "Plant Machine (Corrugation)",
         nameUr: "کوروگیشن پلانٹ",
-        focus: "Scrap removal from slitter scorer, starch leakages, reel storage & safety guards.",
         questions: [
           { pillar: "Sort", en: "Are unnecessary paper scraps, damaged sheets, and unused materials removed?", ur: "کیا فالتو کاغذ کے بچے ہوئے ٹکڑے، خراب شیٹس اور غیر ضروری سامان ہٹا دیا گیا ہے؟" },
           { pillar: "Sort", en: "Is accumulated trim waste from the slitter scorer removed before piling up?", ur: "کیا سلیٹر اسکورر کا کٹا ہوا ویسٹ جمع ہونے سے پہلے صاف کیا جا رہا ہے؟" },
@@ -251,7 +242,6 @@
         id: "manual_die_cut",
         nameEn: "Manual Die Cut Area",
         nameUr: "مینوئل ڈائی کٹنگ ایریا",
-        focus: "Die rack numbering, scrap collection at source, and hand gap guarding.",
         questions: [
           { pillar: "Sort", en: "Are damaged, obsolete, or unused cutting dies removed from active racks?", ur: "کیا خراب یا غیر استعمال شدہ کٹنگ ڈائیز ریک سے ہٹا دی گئی ہیں؟" },
           { pillar: "Set in Order", en: "Is every cutting die assigned a specific numbered rack location (e.g., A-01)?", ur: "کیا ہر ڈائی کی مخصوص نمبر والی جگہ مقرر ہے (مثال: A-01)؟" },
@@ -265,7 +255,6 @@
         id: "manual_pasting",
         nameEn: "Manual Pasting Area",
         nameUr: "مینوئل پیسٹنگ ایریا",
-        focus: "Adhesive spill management, glue bucket cleanliness, stack stability & posture.",
         questions: [
           { pillar: "Sort", en: "Are unpasted/pasted scrap pieces and empty glue containers removed?", ur: "کیا پیسٹنگ کا ویسٹ اور گلو کے خالی ڈبے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are glue drums kept in a defined and labelled location?", ur: "کیا گلو ڈرم کو مخصوص اور لیبل شدہ جگہ پر رکھا گیا ہے؟" },
@@ -279,7 +268,6 @@
         id: "manual_rotary",
         nameEn: "Manual Rotary Area",
         nameUr: "مینوئل روٹری ایریا",
-        focus: "Rotary trim scrap control, nip point guards, pallet alignment in aisles.",
         questions: [
           { pillar: "Sort", en: "Are unnecessary scrap strips and offcuts removed from around the rotary machine?", ur: "کیا روٹری مشین کے ارد گرد سے کٹے ہوئے اضافی ٹکڑے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are extra sheets stored only in the designated marked area?", ur: "کیا اضافی شیٹس کو صرف ان کی مخصوص جگہ پر رکھا گیا ہے؟" },
@@ -293,7 +281,6 @@
         id: "flexo_4c_new",
         nameEn: "Flexo 4 Color New Machine",
         nameUr: "فلیکسو 4 کلر نئی مشین",
-        focus: "High-speed auto trim removal, interlock safety, ink circulation & digital panel cleanliness.",
         questions: [
           { pillar: "Sort", en: "Are waste trim sheets and unused ink containers removed immediately?", ur: "کیا ویسٹ کٹنگ اور غیر ضروری انک کینز مشین کے پاس سے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are 4-color ink lines, pumps, and buckets arranged systematically in trays?", ur: "کیا چاروں کلر کی انک لائنز اور کینز مخصوص ٹرے میں ترتیب سے ہیں؟" },
@@ -307,7 +294,6 @@
         id: "flexo_2c_new",
         nameEn: "Flexo 2 Color New Machine",
         nameUr: "فلیکسو 2 کلر نئی مشین",
-        focus: "Dual ink line setup, photo-sensor cleanliness, automatic scrap removal & interlocks.",
         questions: [
           { pillar: "Sort", en: "Are empty chemical/ink containers and damaged sheets removed?", ur: "کیا انک کے خالی کیمیکل ڈبے اور خراب شیٹس علاقے سے ہٹا دی گئی ہیں؟" },
           { pillar: "Set in Order", en: "Are 2-color inks clearly identified and stored upright in designated racks?", ur: "کیا دو رنگوں کی سیاہی لیبل کے ساتھ مقررہ ریکس میں سیدھی رکھی گئی ہے؟" },
@@ -321,7 +307,6 @@
         id: "flexo_4c_old",
         nameEn: "Flexo 4 Color Old Machine",
         nameUr: "فلیکسو 4 کلر پرانی مشین",
-        focus: "Gearbox oil leak control, manual ink tray drips, open chain guards & hose hazards.",
         questions: [
           { pillar: "Sort", en: "Are accumulated paper scraps, old printing plates, and rags removed?", ur: "کیا پرانے کپڑے، پرنٹنگ پلیٹس اور کاغذ کا ویسٹ ہٹا دیا گیا ہے؟" },
           { pillar: "Set in Order", en: "Are ink hoses and cables routed so they do not create floor trip hazards?", ur: "کیا سیاہی کے پائپ اور تاریں اس طرح ہیں کہ راستہ بند نہ ہو؟" },
@@ -335,16 +320,438 @@
         id: "flexo_2c_old",
         nameEn: "Flexo 2 Color Old Machine",
         nameUr: "فلیکسو 2 کلر پرانی مشین",
-        focus: "Manual ink tray spill containment, chain/belt guards, mechanical oil leaks.",
         questions: [
           { pillar: "Sort", en: "Are rejected sheets separated from good production and removed?", ur: "کیا خراب اور ریجیکٹ شدہ شیٹس کو پیداواری مال سے الگ کیا گیا ہے؟" },
-          { pillar: "Set in Order", en: "Are adjustment tools (spanners/keys) stored at fixed shadow boards?", ur: "```html
           { pillar: "Set in Order", en: "Are adjustment tools stored at fixed shadow boards near the machine?", ur: "کیا مشین کی سیٹنگ والے اوزار ٹول بورڈ پر صحیح جگہ پر رکھے ہیں؟" },
           { pillar: "Shine", en: "Is grease and ink accumulation cleaned from rollers and machine frames?", ur: "کیا رولرز اور مشین فریم سے پرانی سیاہی اور گریس صاف کی گئی ہے؟" },
           { pillar: "Standardize", en: "Are ink spill trays cleaned and repositioned regularly?", ur: "کیا انک ٹرے باقاعدگی سے صاف کر کے دوبارہ صحیح جگہ رکھی جاتی ہیں؟" },
           { pillar: "Sustain", en: "Is waste trim collected continuously during production runs?", ur: "کیا کام کے دوران کچرا ساتھ کے ساتھ جمع کیا جاتا ہے؟" },
-          { pillar: "Safety", en: "Are exposed rotating drive belts, gears, and motor covers secured?", ur: "
+          { pillar: "Safety", en: "Are exposed rotating drive belts, gears, and motor covers secured?", ur: "کیا گھومنے والے بیلٹس، موٹر کور اور گیئرز پر مکمل سیفٹی کور ہیں؟" }
+        ]
+      },
+      {
+        id: "folder",
+        nameEn: "Folder Area (Folder & Gluer)",
+        nameUr: "فولڈر اور گلوئر ایریا",
+        questions: [
+          { pillar: "Sort", en: "Are rejected cartons, waste strips, and unused straps removed?", ur: "کیا خراب کارٹن، ویسٹ پٹیاں اور فالتو سٹریپس ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are carton bundles placed completely inside designated floor-marked areas?", ur: "کیا کارٹن کے بنڈل صرف نشان زد جگہوں پر رکھے گئے ہیں؟" },
+          { pillar: "Shine", en: "Are glue spills and dried residue cleaned from belts, rollers, and floors?", ur: "کیا گلو کے قطرے، بیلٹس اور فرش کی صفائی کی گئی ہے؟" },
+          { pillar: "Standardize", en: "Is a standard maximum stack height defined and visibly displayed?", ur: "کیا کارٹن کے ڈیر کی زیادہ سے زیادہ اونچائی کی حد ظاہر کی گئی ہے؟" },
+          { pillar: "Sustain", en: "Are finished bundles properly tied, labelled, and stored systematically?", ur: "کیا تیار بنڈل صحیح طریقے سے باندھ کر اور لیبل لگا کر رکھے گئے ہیں؟" },
+          { pillar: "Safety", en: "Are fire extinguishers and emergency exit pathways kept 100% unobstructed?", ur: "کیا آگ بجھانے والے آلات اور ہنگامی راستے 100٪ کھلے اور صاف ہیں؟" }
+        ]
+      }
+    ];
 
-```python?code_reference&code_event_index=3
-# Verify all JS array objects close properly
-print("Checked JS structures")
+    // STATE VARIABLES
+    let currentAreaIndex = 0;
+    let currentLang = 'dual'; // 'en', 'ur', 'dual'
+    let auditScores = {};
+    let capaData = {};
+    let savedAudits = JSON.parse(localStorage.getItem('6s_audit_history') || '[]');
+    let radarChartInstance = null;
+
+    // INITIALIZATION
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('auditDate').valueAsDate = new Date();
+      initializeDefaultScores();
+      renderAreaNav();
+      renderQuestions();
+      initRadarChart();
+      updateScores();
+    });
+
+    function initializeDefaultScores() {
+      PLANT_AREAS.forEach(area => {
+        area.questions.forEach((q, idx) => {
+          const key = `${area.id}_${idx}`;
+          if (auditScores[key] === undefined) {
+            auditScores[key] = 5; // Default score 5 (Pass)
+          }
+        });
+      });
+    }
+
+    // LANGUAGE SWITCHER
+    function setLanguage(lang) {
+      currentLang = lang;
+      ['en', 'ur', 'dual'].forEach(l => {
+        const btn = document.getElementById(`lang-btn-${l}`);
+        if (l === lang) {
+          btn.className = "px-3 py-1.5 rounded-md transition-all bg-blue-600 text-white font-bold";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
+        }
+      });
+      renderQuestions();
+      renderCapaTable();
+    }
+
+    // RENDER AREA NAVIGATION
+    function renderAreaNav() {
+      const container = document.getElementById('areaNavList');
+      container.innerHTML = '';
+      PLANT_AREAS.forEach((area, index) => {
+        const isSelected = index === currentAreaIndex;
+        const btn = document.createElement('button');
+        btn.onclick = () => selectArea(index);
+        btn.className = `w-full text-left px-3 py-2.5 rounded-lg border text-xs font-semibold transition flex items-center justify-between ${
+          isSelected 
+            ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+        }`;
+        
+        btn.innerHTML = `
+          <div class="truncate pr-2">
+            <div class="font-bold truncate">${area.nameEn}</div>
+            <div class="text-[10px] opacity-80 urdu-text leading-tight truncate">${area.nameUr}</div>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}" id="nav-score-${area.id}">100%</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function selectArea(index) {
+      currentAreaIndex = index;
+      renderAreaNav();
+      renderQuestions();
+      updateScores();
+    }
+
+    // RENDER QUESTIONS
+    function renderQuestions() {
+      const area = PLANT_AREAS[currentAreaIndex];
+      document.getElementById('currentAreaTitle').innerText = area.nameEn;
+      document.getElementById('currentAreaUrduTitle').innerText = area.nameUr;
+
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      area.questions.forEach((q, qIndex) => {
+        const key = `${area.id}_${qIndex}`;
+        const currentScore = auditScores[key] || 5;
+
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3";
+
+        let textContent = '';
+        if (currentLang === 'en') {
+          textContent = `<p class="text-xs font-semibold text-slate-800">${q.en}</p>`;
+        } else if (currentLang === 'ur') {
+          textContent = `<p class="text-xs font-bold text-slate-800 urdu-text">${q.ur}</p>`;
+        } else {
+          textContent = `
+            <p class="text-xs font-semibold text-slate-800">${q.en}</p>
+            <p class="text-xs text-slate-600 urdu-text mt-0.5">${q.ur}</p>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1 flex-1">
+              <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700">${q.pillar}</span>
+              ${textContent}
+            </div>
+            <div class="flex items-center space-x-1">
+              ${[1,2,3,4,5].map(scoreVal => `
+                <button onclick="setScore('${key}', ${scoreVal})" class="w-7 h-7 rounded-lg text-xs font-bold transition ${
+                  currentScore === scoreVal 
+                    ? (scoreVal < 3 ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white')
+                    : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                }">${scoreVal}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function setScore(key, val) {
+      auditScores[key] = val;
+      renderQuestions();
+      updateScores();
+    }
+
+    // SCORE & CHART UPDATES
+    function updateScores() {
+      let totalEarned = 0;
+      let totalPossible = 0;
+
+      const pillarTotals = { "Sort": 0, "Set in Order": 0, "Shine": 0, "Standardize": 0, "Sustain": 0, "Safety": 0 };
+      const pillarCounts = { "Sort": 0, "Set in Order": 0, "Shine": 0, "Standardize": 0, "Sustain": 0, "Safety": 0 };
+
+      PLANT_AREAS.forEach(area => {
+        let areaEarned = 0;
+        let areaPossible = area.questions.length * 5;
+
+        area.questions.forEach((q, idx) => {
+          const key = `${area.id}_${idx}`;
+          const score = auditScores[key] !== undefined ? auditScores[key] : 5;
+          areaEarned += score;
+          
+          if (pillarTotals[q.pillar] !== undefined) {
+            pillarTotals[q.pillar] += score;
+            pillarCounts[q.pillar] += 5;
+          }
+        });
+
+        const areaPct = Math.round((areaEarned / areaPossible) * 100);
+        const navTag = document.getElementById(`nav-score-${area.id}`);
+        if (navTag) navTag.innerText = `${areaPct}%`;
+
+        if (PLANT_AREAS[currentAreaIndex].id === area.id) {
+          document.getElementById('areaScoreTag').innerText = `Area Score: ${areaPct}%`;
+        }
+
+        totalEarned += areaEarned;
+        totalPossible += areaPossible;
+      });
+
+      const overallPct = Math.round((totalEarned / totalPossible) * 100);
+      document.getElementById('overallScoreDisplay').innerText = `${overallPct}%`;
+      document.getElementById('scoreStatusText').innerText = overallPct >= 85 ? "Excellent 6S Standards" : "Needs CAPA Follow-up";
+
+      updateRadarChart(pillarTotals, pillarCounts);
+      renderCapaTable();
+    }
+
+    // CAPA TABLE GENERATION
+    function renderCapaTable() {
+      const tbody = document.getElementById('capaTableBody');
+      tbody.innerHTML = '';
+      let capaItemsCount = 0;
+
+      PLANT_AREAS.forEach(area => {
+        area.questions.forEach((q, idx) => {
+          const key = `${area.id}_${idx}`;
+          const score = auditScores[key];
+
+          if (score !== undefined && score < 3) {
+            capaItemsCount++;
+            if (!capaData[key]) {
+              capaData[key] = { action: '', owner: '', beforeImg: '', afterImg: '' };
+            }
+
+            const item = capaData[key];
+            const isResolved = item.afterImg && item.afterImg !== '';
+
+            const row = document.createElement('tr');
+            row.className = "border-b border-slate-200 hover:bg-slate-50/80";
+
+            row.innerHTML = `
+              <td class="p-3 font-semibold text-slate-700">
+                <span class="text-blue-600 font-bold block">${area.nameEn}</span>
+                <span class="text-[10px] text-slate-400 uppercase">${q.pillar}</span>
+              </td>
+              <td class="p-3 text-slate-800">
+                <p class="font-medium">${q.en}</p>
+                <p class="text-[11px] text-slate-500 urdu-text">${q.ur}</p>
+                <span class="inline-block mt-1 text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">Score: ${score}/5</span>
+              </td>
+              <td class="p-3">
+                <div class="space-y-1">
+                  ${item.beforeImg ? `
+                    <img src="${item.beforeImg}" class="w-14 h-14 object-cover rounded border border-slate-300">
+                    <button onclick="removePhoto('${key}', 'beforeImg')" class="text-[10px] text-red-600 underline">Remove</button>
+                  ` : `
+                    <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded p-2 text-center block text-[10px] text-slate-600">
+                      <i class="fa-solid fa-camera block text-sm mb-1 text-slate-400"></i> Upload Before
+                      <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event, '${key}', 'beforeImg')">
+                    </label>
+                  `}
+                </div>
+              </td>
+              <td class="p-3 space-y-1.5">
+                <input type="text" placeholder="Corrective action..." value="${item.action}" onchange="updateCapaText('${key}', 'action', this.value)" class="w-full text-xs p-1.5 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                <input type="text" placeholder="Owner..." value="${item.owner}" onchange="updateCapaText('${key}', 'owner', this.value)" class="w-full text-xs p-1.5 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+              </td>
+              <td class="p-3">
+                <div class="space-y-1">
+                  ${item.afterImg ? `
+                    <img src="${item.afterImg}" class="w-14 h-14 object-cover rounded border border-slate-300">
+                    <button onclick="removePhoto('${key}', 'afterImg')" class="text-[10px] text-red-600 underline">Remove</button>
+                  ` : `
+                    <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded p-2 text-center block text-[10px] text-slate-600">
+                      <i class="fa-solid fa-camera block text-sm mb-1 text-slate-400"></i> Upload After
+                      <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event, '${key}', 'afterImg')">
+                    </label>
+                  `}
+                </div>
+              </td>
+              <td class="p-3 text-center">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isResolved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                  ${isResolved ? 'Resolved' : 'Needs After Photo'}
+                </span>
+              </td>
+            `;
+            tbody.appendChild(row);
+          }
+        });
+      });
+
+      document.getElementById('capaCountBadge').innerText = `${capaItemsCount} Items`;
+      if (capaItemsCount === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-6 text-center text-slate-400">
+              <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-2 block"></i>
+              No CAPA items currently flagged across all 9 plant areas!
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateCapaText(key, field, val) {
+      if (!capaData[key]) capaData[key] = {};
+      capaData[key][field] = val;
+    }
+
+    function uploadPhoto(event, key, photoField) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (!capaData[key]) capaData[key] = {};
+          capaData[key][photoField] = e.target.result;
+          renderCapaTable();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removePhoto(key, photoField) {
+      if (capaData[key]) {
+        capaData[key][photoField] = '';
+        renderCapaTable();
+      }
+    }
+
+    // CHART.JS RADAR CHART LOGIC
+    function initRadarChart() {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      radarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Sort (1S)', 'Set (2S)', 'Shine (3S)', 'Standardize (4S)', 'Sustain (5S)', 'Safety (6S)'],
+          datasets: [{
+            label: 'Score %',
+            data: [100, 100, 100, 100, 100, 100],
+            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+            borderColor: 'rgba(37, 99, 235, 1)',
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(37, 99, 235, 1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function updateRadarChart(totals, counts) {
+      if (!radarChartInstance) return;
+      const scores = [
+        counts["Sort"] ? Math.round((totals["Sort"] / counts["Sort"]) * 100) : 100,
+        counts["Set in Order"] ? Math.round((totals["Set in Order"] / counts["Set in Order"]) * 100) : 100,
+        counts["Shine"] ? Math.round((totals["Shine"] / counts["Shine"]) * 100) : 100,
+        counts["Standardize"] ? Math.round((totals["Standardize"] / counts["Standardize"]) * 100) : 100,
+        counts["Sustain"] ? Math.round((totals["Sustain"] / counts["Sustain"]) * 100) : 100,
+        counts["Safety"] ? Math.round((totals["Safety"] / counts["Safety"]) * 100) : 100
+      ];
+      radarChartInstance.data.datasets[0].data = scores;
+      radarChartInstance.update();
+    }
+
+    // LOCAL STORAGE MANAGEMENT
+    function saveCurrentAudit() {
+      const report = {
+        id: Date.now(),
+        location: document.getElementById('plantLocation').value,
+        auditor: document.getElementById('auditorName').value || 'Unassigned',
+        supervisor: document.getElementById('supervisorName').value || 'Unassigned',
+        date: document.getElementById('auditDate').value,
+        shift: document.getElementById('auditShift').value,
+        scores: { ...auditScores },
+        capa: { ...capaData },
+        overallPct: document.getElementById('overallScoreDisplay').innerText
+      };
+
+      savedAudits.unshift(report);
+      localStorage.setItem('6s_audit_history', JSON.stringify(savedAudits));
+      alert("✅ Daily Audit Report saved successfully!");
+    }
+
+    function openHistoryModal() {
+      const container = document.getElementById('historyListContainer');
+      container.innerHTML = '';
+
+      if (savedAudits.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No saved audit reports found in local memory.</p>`;
+      } else {
+        savedAudits.forEach((audit, index) => {
+          const card = document.createElement('div');
+          card.className = "p-3.5 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between";
+          card.innerHTML = `
+            <div>
+              <div class="font-bold text-xs text-slate-800">${audit.date} (${audit.shift})</div>
+              <div class="text-[11px] text-slate-500">Auditor: ${audit.auditor} | Supervisor: ${audit.supervisor}</div>
+              <div class="text-[10px] text-blue-600 font-bold mt-1">Overall Score: ${audit.overallPct}</div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="loadAuditFromHistory(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                <i class="fa-solid fa-folder-open mr-1"></i> Open / Load
+              </button>
+              <button onclick="deleteAuditFromHistory(${index})" class="text-red-500 hover:text-red-700 text-xs px-2 py-1">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      document.getElementById('historyModal').classList.remove('hidden');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').classList.add('hidden');
+    }
+
+    function loadAuditFromHistory(index) {
+      const audit = savedAudits[index];
+      if (!audit) return;
+
+      document.getElementById('plantLocation').value = audit.location || '';
+      document.getElementById('auditorName').value = audit.auditor || '';
+      document.getElementById('supervisorName').value = audit.supervisor || '';
+      document.getElementById('auditDate').value = audit.date || '';
+      document.getElementById('auditShift').value = audit.shift || 'Shift A';
+
+      auditScores = { ...audit.scores };
+      capaData = { ...audit.capa };
+
+      renderAreaNav();
+      renderQuestions();
+      updateScores();
+      closeHistoryModal();
+
+      alert(`📂 Successfully loaded audit report from ${audit.date}!`);
+    }
+
+    function deleteAuditFromHistory(index) {
+      if (confirm("Are you sure you want to delete this saved audit record?")) {
+        savedAudits.splice(index, 1);
+        localStorage.setItem('6s_audit_history', JSON.stringify(savedAudits));
+        openHistoryModal();
+      }
+    }
+  </script>
+</body>
+</html>
