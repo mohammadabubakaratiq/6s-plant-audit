@@ -10,7 +10,53 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Urdu & English -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Standard Imports for Storage & Daily Report Logging -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration & Initialization
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : '6s-audit-plant-app';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.appId = appId;
+        window.auth = auth;
+
+        // Auto-authenticate for database access
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Firebase Auth ready for audit persistence.");
+            } catch (err) {
+                console.warn("Auth initialization fallback:", err);
+            }
+        }
+        initAuth();
+    </script>
+
     <style>
+        body { font-family: 'Inter', sans-serif; }
+        .lang-ur { font-family: 'Noto Nastaliq Urdu', 'Inter', serif; line-height: 1.8; }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -18,39 +64,51 @@
             .card-shadow { box-shadow: none !important; border: 1px solid #ccc !important; }
             .page-break { page-break-before: always; }
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
     <!-- Top Header -->
     <header class="bg-slate-900 text-white shadow-md no-print border-b border-slate-700">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-blue-600 rounded-lg text-white font-bold text-xl shadow-inner">
                     <i class="fa-solid fa-square-check"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-wide">6S AUDIT SHEET & DASHBOARD</h1>
-                    <p class="text-xs text-slate-400">Plant Operational Excellence & Workplace Organization</p>
+                    <h1 class="text-lg font-bold tracking-wide flex items-center gap-2">
+                        <span>6S AUDIT SHEET & DASHBOARD</span>
+                        <span class="text-xs font-normal text-blue-300 bg-blue-900/60 px-2 py-0.5 rounded border border-blue-700/50">v2.0 Urdu/Eng</span>
+                    </h1>
+                    <p class="text-xs text-slate-400" id="headerSubtitle">Plant Operational Excellence & Workplace Organization</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-all shadow flex items-center gap-2">
-                    <i class="fa-solid fa-print"></i> Print / Export Report
+
+            <!-- Controls: Language Switcher & Save / History Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Language Module Selector -->
+                <div class="flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700 text-xs">
+                    <span class="px-2 text-slate-400 font-semibold"><i class="fa-solid fa-language text-blue-400"></i></span>
+                    <button onclick="setLanguage('en')" id="langBtnEn" class="px-2.5 py-1 rounded font-bold transition-all bg-blue-600 text-white">ENG</button>
+                    <button onclick="setLanguage('ur')" id="langBtnUr" class="px-2.5 py-1 rounded font-bold transition-all text-slate-300 hover:text-white">اردو</button>
+                    <button onclick="setLanguage('dual')" id="langBtnDual" class="px-2.5 py-1 rounded font-bold transition-all text-slate-300 hover:text-white">Dual (English + اردو)</button>
+                </div>
+
+                <!-- Cloud Save Daily Report -->
+                <button onclick="saveDailyAuditReport()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="saveAudit">Save Daily Report</span>
                 </button>
-                <button onclick="resetCurrentAudit()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all border border-slate-700 flex items-center gap-1.5">
-                    <i class="fa-solid fa-rotate-right"></i> Reset
+
+                <!-- History Modal Trigger -->
+                <button onclick="openAuditHistoryModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-all border border-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> <span data-i18n="history">Saved Audits</span>
+                </button>
+
+                <button onclick="window.print()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-all shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i> <span data-i18n="print">Print</span>
                 </button>
             </div>
         </div>
@@ -65,34 +123,34 @@
             <!-- Audit Metadata Card -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
                 <h2 class="text-sm font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-clipboard-user text-blue-600"></i> Audit Information
+                    <i class="fa-solid fa-clipboard-user text-blue-600"></i> <span data-i18n="auditInfo">Audit Information</span>
                 </h2>
                 
-                <div class="space-y-3">
+                <div class="space-y-3 text-xs">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Plant / Location</label>
-                        <input type="text" id="auditPlant" value="Main Manufacturing Unit" class="w-full text-sm px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        <label class="block font-semibold text-slate-600 mb-1" data-i18n="labelPlant">Plant / Location</label>
+                        <input type="text" id="auditPlant" value="Main Manufacturing Unit" class="w-full text-xs px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Auditor Name</label>
-                        <input type="text" id="auditorName" placeholder="Enter auditor name" class="w-full text-sm px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        <label class="block font-semibold text-slate-600 mb-1" data-i18n="labelAuditor">Auditor Name</label>
+                        <input type="text" id="auditorName" placeholder="Enter auditor name / آڈیٹر کا نام" class="w-full text-xs px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Area Supervisor / Owner</label>
-                        <input type="text" id="supervisorName" placeholder="Enter supervisor name" class="w-full text-sm px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        <label class="block font-semibold text-slate-600 mb-1" data-i18n="labelSupervisor">Area Supervisor / Owner</label>
+                        <input type="text" id="supervisorName" placeholder="Enter supervisor name / سپروائزر" class="w-full text-xs px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Audit Date</label>
+                            <label class="block font-semibold text-slate-600 mb-1" data-i18n="labelDate">Audit Date</label>
                             <input type="date" id="auditDate" class="w-full text-xs px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Shift</label>
+                            <label class="block font-semibold text-slate-600 mb-1" data-i18n="labelShift">Shift</label>
                             <select id="auditShift" class="w-full text-xs px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300 bg-white">
-                                <option value="Shift A">Shift A</option>
-                                <option value="Shift B">Shift B</option>
-                                <option value="Shift C">Shift C</option>
-                                <option value="General">General</option>
+                                <option value="Shift A">Shift A (شفٹ اے)</option>
+                                <option value="Shift B">Shift B (شفٹ بی)</option>
+                                <option value="Shift C">Shift C (شفٹ سی)</option>
+                                <option value="General">General (جنرل)</option>
                             </select>
                         </div>
                     </div>
@@ -102,7 +160,7 @@
             <!-- Area Selection Navigation -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
                 <h2 class="text-sm font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-industry text-blue-600"></i> Select Plant Area
+                    <i class="fa-solid fa-industry text-blue-600"></i> <span data-i18n="selectArea">Select Plant Area</span>
                 </h2>
                 <div class="space-y-1.5 custom-scrollbar max-h-[420px] overflow-y-auto pr-1" id="areaNav">
                     <!-- Area Buttons Injected via JS -->
@@ -112,7 +170,7 @@
             <!-- Quick Score Summary Box -->
             <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow border border-slate-700 p-5 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-xs uppercase font-semibold text-slate-400">Total Audit Score</span>
+                    <span class="text-xs uppercase font-semibold text-slate-400" data-i18n="totalScoreLabel">Total Audit Score</span>
                     <span id="scoreBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Needs Audit</span>
                 </div>
                 <div class="flex items-baseline gap-2">
@@ -150,7 +208,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
-                        <i class="fa-solid fa-location-dot"></i> Active Machine / Zone Audit
+                        <i class="fa-solid fa-location-dot"></i> <span data-i18n="activeAreaLabel">Active Machine / Zone Audit</span>
                     </div>
                     <h2 id="activeAreaTitle" class="text-2xl font-bold text-slate-800">Plant Machine (Corrugation Area)</h2>
                     <p id="activeAreaDesc" class="text-xs text-slate-500 mt-1">Focus on reel storage, starch/glue leakages, trim scrap at slitter scorer, guards, and safety hazards.</p>
@@ -158,15 +216,15 @@
                 
                 <div class="flex items-center gap-2 self-end md:self-center">
                     <button onclick="setAllScores(5)" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-md border border-emerald-200 transition-all no-print">
-                        <i class="fa-solid fa-check-double"></i> All Compliant (5)
+                        <i class="fa-solid fa-check-double"></i> <span data-i18n="allCompliant">All Compliant (5)</span>
                     </button>
                     <button onclick="setAllScores(0)" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-md border border-rose-200 transition-all no-print">
-                        <i class="fa-solid fa-xmark"></i> Clear All
+                        <i class="fa-solid fa-xmark"></i> <span data-i18n="clearAll">Clear All</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Pillar Visual Analytics Chart (Collapsible / Summary) -->
+            <!-- Pillar Visual Analytics Chart -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-5 h-48 relative flex items-center justify-center">
                     <canvas id="pillarRadarChart"></canvas>
@@ -179,7 +237,7 @@
             <!-- High Weightage Critical Alert Box -->
             <div id="criticalFocusBox" class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm text-xs text-amber-900 space-y-1">
                 <div class="font-bold flex items-center gap-2 text-amber-800 text-sm">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Area Critical Focus Points
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> <span data-i18n="criticalFocusTitle">Area Critical Focus Points</span>
                 </div>
                 <p id="criticalFocusText" class="leading-relaxed">Trim scrap accumulation around slitter scorer, proper securing of paper reels, wet/slippery floor near starch preparation, and nip point safety around corrugation rolls.</p>
             </div>
@@ -188,12 +246,12 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="border-b border-slate-200 bg-slate-50/70 p-2 flex flex-wrap gap-1 no-print" id="pillarFilterTabs">
                     <button onclick="filterPillar('ALL')" class="pillar-tab active px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white">ALL PILLARS</button>
-                    <button onclick="filterPillar('SORT')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">1S SORT</button>
-                    <button onclick="filterPillar('SET IN ORDER')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">2S SET IN ORDER</button>
-                    <button onclick="filterPillar('SHINE')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">3S SHINE</button>
-                    <button onclick="filterPillar('STANDARDIZE')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">4S STANDARDIZE</button>
-                    <button onclick="filterPillar('SUSTAIN')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">5S SUSTAIN</button>
-                    <button onclick="filterPillar('SAFETY')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">6S SAFETY</button>
+                    <button onclick="filterPillar('SORT')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">1S SORT / چھانٹائی</button>
+                    <button onclick="filterPillar('SET IN ORDER')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">2S SET IN ORDER / ترتیب</button>
+                    <button onclick="filterPillar('SHINE')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">3S SHINE / صفائی</button>
+                    <button onclick="filterPillar('STANDARDIZE')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">4S STANDARDIZE / معیار</button>
+                    <button onclick="filterPillar('SUSTAIN')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">5S SUSTAIN / پابندی</button>
+                    <button onclick="filterPillar('SAFETY')" class="pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">6S SAFETY / حفاظت</button>
                 </div>
 
                 <!-- Questions List -->
@@ -202,14 +260,14 @@
                 </div>
             </div>
 
-            <!-- Corrective Action Plan (CAPA) Log -->
+            <!-- Corrective Action Plan (CAPA) Log with Before & After Pictures -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
                 <div class="flex justify-between items-center border-b pb-3 border-slate-200">
                     <div>
                         <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-rose-600"></i> Corrective Action Plan (CAPA)
+                            <i class="fa-solid fa-list-check text-rose-600"></i> <span data-i18n="capaTitle">Corrective Action Plan (CAPA) & Photo Verification</span>
                         </h3>
-                        <p class="text-xs text-slate-500">Auto-generated non-conformances (< 3 points) requiring corrective action.</p>
+                        <p class="text-xs text-slate-500" data-i18n="capaDesc">Auto-generated non-conformances (< 3 points). Requires Before & After photos to resolve.</p>
                     </div>
                     <span id="capaCountBadge" class="text-xs font-bold px-2 py-1 bg-rose-100 text-rose-700 rounded-full">0 Action Items</span>
                 </div>
@@ -218,17 +276,18 @@
                     <table class="w-full text-xs text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-100 text-slate-700 uppercase font-semibold border-b border-slate-200">
-                                <th class="p-2.5 w-12">#</th>
-                                <th class="p-2.5">Pillar / Audit Item</th>
-                                <th class="p-2.5 w-16 text-center">Score</th>
-                                <th class="p-2.5">Observed Defect / Finding</th>
-                                <th class="p-2.5">Corrective Action Required</th>
-                                <th class="p-2.5 w-32">Assignee & Due Date</th>
+                                <th class="p-2.5 w-10">#</th>
+                                <th class="p-2.5">Pillar / Item</th>
+                                <th class="p-2.5 w-14 text-center">Score</th>
+                                <th class="p-2.5">Observed Defect & Action</th>
+                                <th class="p-2.5 w-48 text-center">Before Photo (خرابی)</th>
+                                <th class="p-2.5 w-48 text-center">After Photo (اصلاح)</th>
+                                <th class="p-2.5 w-24 text-center">CAPA Status</th>
                             </tr>
                         </thead>
                         <tbody id="capaTableBody" class="divide-y divide-slate-200">
                             <tr>
-                                <td colspan="6" class="text-center py-6 text-slate-400 italic">No non-conformances flagged yet. Complete the audit questions above.</td>
+                                <td colspan="7" class="text-center py-6 text-slate-400 italic">No non-conformances flagged yet. Complete the audit questions above.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -261,226 +320,267 @@
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 no-print mt-8">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>Integrated 6S Audit Sheet & Task Tracker • Packaging & Printing Operations</p>
-            <p>Operational Excellence & Workplace Safety Standard</p>
-        </div>
-    </footer>
+    <!-- Modal for Saved Daily Audit Reports -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 border-slate-200">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Saved Daily Audit Reports</h3>
+                        <p class="text-xs text-slate-500">Historical records stored locally and in database.</p>
+                    </div>
+                </div>
+                <button onclick="closeAuditHistoryModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-    <!-- Application Script -->
+            <div class="overflow-y-auto flex-grow custom-scrollbar space-y-3" id="historyModalList">
+                <p class="text-center py-8 text-slate-400 text-xs italic">Loading saved audit reports...</p>
+            </div>
+
+            <div class="border-t pt-3 flex justify-end">
+                <button onclick="closeAuditHistoryModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script with Language & Image Persistence -->
     <script>
-        // Plant Areas & Tailored Questions Database
+        // Language UI Dictionary
+        const uiDict = {
+            en: {
+                saveAudit: "Save Daily Report",
+                history: "Saved Audits",
+                print: "Print / Export",
+                auditInfo: "Audit Information",
+                labelPlant: "Plant / Location",
+                labelAuditor: "Auditor Name",
+                labelSupervisor: "Area Supervisor / Owner",
+                labelDate: "Audit Date",
+                labelShift: "Shift",
+                selectArea: "Select Plant Area",
+                totalScoreLabel: "Total Audit Score",
+                activeAreaLabel: "Active Machine / Zone Audit",
+                allCompliant: "All Compliant (5)",
+                clearAll: "Clear All",
+                criticalFocusTitle: "Area Critical Focus Points",
+                capaTitle: "Corrective Action Plan (CAPA) & Photo Verification",
+                capaDesc: "Auto-generated non-conformances (< 3 points). Requires Before & After photos to resolve."
+            },
+            ur: {
+                saveAudit: "روزانہ کی رپورٹ محفوظ کریں",
+                history: "پرانی رپورٹس",
+                print: "پرنٹ کریں",
+                auditInfo: "آڈٹ کی معلومات",
+                labelPlant: "پلانٹ / مقام",
+                labelAuditor: "آڈیٹر کا نام",
+                labelSupervisor: "ایریا سپروائزر",
+                labelDate: "آڈٹ کی تاریخ",
+                labelShift: "شفٹ",
+                selectArea: "پلانٹ کا علاقہ منتخب کریں",
+                totalScoreLabel: "کل آڈٹ اسکور",
+                activeAreaLabel: "فعال مشین / زون آڈٹ",
+                allCompliant: "تمام ٹھیک ہیں (5)",
+                clearAll: "تمام صاف کریں",
+                criticalFocusTitle: "اہم ترین توجہ والے نکات",
+                capaTitle: "اصلاحی اقدام کا منصوبہ (CAPA) اور تصویر کی تصدیق",
+                capaDesc: "غیر تعمیل (3 سے کم اسکور)۔ حل کے لیے کام سے پہلے اور بعد کی تصویر لازمی ہے۔"
+            },
+            dual: {
+                saveAudit: "Save Daily Report / محفوظ کریں",
+                history: "Saved Audits / پرانی رپورٹس",
+                print: "Print / پرنٹ",
+                auditInfo: "Audit Information / آڈٹ معلومات",
+                labelPlant: "Plant / پلانٹ",
+                labelAuditor: "Auditor Name / آڈیٹر",
+                labelSupervisor: "Supervisor / سپروائزر",
+                labelDate: "Audit Date / تاریخ",
+                labelShift: "Shift / شفٹ",
+                selectArea: "Select Plant Area / علاقہ منتخب کریں",
+                totalScoreLabel: "Total Score / کل اسکور",
+                activeAreaLabel: "Active Audit Zone / فعال زون",
+                allCompliant: "All Compliant (5) / تمام 5",
+                clearAll: "Clear All / تمام صاف کریں",
+                criticalFocusTitle: "Critical Focus / اہم نکات",
+                capaTitle: "CAPA & Photo Verification / اصلاحی اقدامات اور تصاویر",
+                capaDesc: "Requires Before & After photos to resolve / قبل اور بعد کی تصاویر ضروری ہیں"
+            }
+        };
+
+        let currentLang = 'en'; // 'en', 'ur', 'dual'
+
+        // Plant Areas with English & Urdu Translations
         const plantAreas = [
             {
                 id: 'corrugation',
                 name: 'Plant Machine (Corrugation)',
+                nameUr: 'کورگیشن مشین (Corrugation Area)',
                 icon: 'fa-layer-group',
                 desc: 'Main corrugator area, reel stands, slitter scorer, starch kitchen & dry end.',
+                descUr: 'مین کورگیٹر ایریا، پیپر ریل اسٹینڈ، سلٹر اسکورر، اسٹارچ کچن اور ڈرائی اینڈ۔',
                 critical: 'Trim scrap accumulation around slitter scorer, proper securing of paper reels, wet/slippery floor near starch preparation, and nip point safety around corrugation rolls.',
+                criticalUr: 'سلٹر اسکورر کے قریب ٹرم اسکریپ جمع ہونا، کاغذ کی ریلوں کی حفاظت، گلو اسٹارچ کے پاس چکنائی/گیلا پن اور رولرز کی حفاظت۔',
                 questions: [
-                    { id: 'c_sort_1', pillar: 'SORT', text: 'Are unnecessary paper scraps, damaged sheets, empty cores and unused materials removed from the corrugation area?' },
-                    { id: 'c_sort_2', pillar: 'SORT', text: 'Are usable leftover paper rolls separated from scrap or unusable rolls?' },
-                    { id: 'c_sort_3', pillar: 'SORT', text: 'Are obsolete, damaged or unused tools and machine parts removed from the machine surroundings?' },
-                    { id: 'c_sort_8', pillar: 'SORT', text: 'Is accumulated trim waste from the slitter scorer removed before it becomes a large pile?' },
-                    { id: 'c_set_1', pillar: 'SET IN ORDER', text: 'Are paper reels stored in clearly marked and numbered reel locations according to GSM and width?' },
-                    { id: 'c_set_4', pillar: 'SET IN ORDER', text: 'Are WIP corrugated sheets kept within designated floor-marked locations?' },
-                    { id: 'c_set_6', pillar: 'SET IN ORDER', text: 'Is there a fixed location for trim scrap generated from the slitter scorer?' },
-                    { id: 'c_set_10', pillar: 'SET IN ORDER', text: 'Are pedestrian walkways clearly marked and kept free from reels, sheets, scrap and pallets?' },
-                    { id: 'c_shine_1', pillar: 'SHINE', text: 'Is the floor around the corrugator free from paper scrap, dust and trim waste?' },
-                    { id: 'c_shine_4', pillar: 'SHINE', text: 'Are starch/glue spills cleaned immediately and leaks prevented?' },
-                    { id: 'c_shine_6', pillar: 'SHINE', text: 'Are the B-Flute, C-Flute and E-Flute machine areas clean at the end of every shift?' },
-                    { id: 'c_std_1', pillar: 'STANDARDIZE', text: 'Are standard floor markings and maximum WIP stack height limits displayed and maintained?' },
-                    { id: 'c_std_7', pillar: 'STANDARDIZE', text: 'Are machine cleaning standards and scrap removal SOPs displayed at respective machines?' },
-                    { id: 'c_sus_1', pillar: 'SUSTAIN', text: 'Are operators consistently following the defined reel, WIP and scrap locations throughout all shifts?' },
-                    { id: 'c_saf_1', pillar: 'SAFETY', text: 'Are paper reels secured against unintended rolling while stored or waiting for use?' },
-                    { id: 'c_saf_3', pillar: 'SAFETY', text: 'Are rotating rollers, gears, belts and nip points properly guarded?' },
-                    { id: 'c_saf_8', pillar: 'SAFETY', text: 'Are steam lines, hot surfaces and dry-end heating hazards properly identified and shielded?' }
+                    { id: 'c_sort_1', pillar: 'SORT', text: 'Are unnecessary paper scraps, damaged sheets, empty cores and unused materials removed from the corrugation area?', textUr: 'کیا کورگیشن ایریا سے فالتو ردی، خراب کاغذ، خالی پائپ اور غیر ضروری سامان ہٹا دیا گیا ہے؟' },
+                    { id: 'c_sort_2', pillar: 'SORT', text: 'Are usable leftover paper rolls separated from scrap or unusable rolls?', textUr: 'کیا استعمال کے قابل بقیہ پیپر رولز کو ردی یا ناپائیدار رولز سے الگ رکھا گیا ہے؟' },
+                    { id: 'c_sort_3', pillar: 'SORT', text: 'Are obsolete, damaged or unused tools and machine parts removed from the machine surroundings?', textUr: 'کیا مشین کے ارد گرد سے پرانے، خراب یا غیر استعمال شدہ اوزار اور پارٹس ہٹا دیے گئے ہیں؟' },
+                    { id: 'c_sort_8', pillar: 'SORT', text: 'Is accumulated trim waste from the slitter scorer removed before it becomes a large pile?', textUr: 'کیا سلٹر اسکورر کی کٹنگ ردی کا ڈھیر بننے سے پہلے اسے فوری طور پر ہٹایا جاتا ہے؟' },
+                    { id: 'c_set_1', pillar: 'SET IN ORDER', text: 'Are paper reels stored in clearly marked and numbered reel locations according to GSM and width?', textUr: 'کیا کاغذ کی ریلیں GSM اور چوڑائی کے لحاظ سے متعین جگہوں پر رکھی گئی ہیں؟' },
+                    { id: 'c_set_4', pillar: 'SET IN ORDER', text: 'Are WIP corrugated sheets kept within designated floor-marked locations?', textUr: 'کیا جاری کام (WIP) کی شیٹس کو فرش پر لگے نِشانات کے اندر رکھا گیا ہے؟' },
+                    { id: 'c_set_10', pillar: 'SET IN ORDER', text: 'Are pedestrian walkways clearly marked and kept free from reels, sheets, scrap and pallets?', textUr: 'کیا چلنے کے راستے (Walkways) صاف ہیں اور ریلز یا پیلیٹس سے پاک ہیں؟' },
+                    { id: 'c_shine_1', pillar: 'SHINE', text: 'Is the floor around the corrugator free from paper scrap, dust and trim waste?', textUr: 'کیا کورگیٹر کے ارد گرد فرش کاغذ کی گرد اور ٹرم ویسٹ سے بالکل صاف ہے؟' },
+                    { id: 'c_shine_4', pillar: 'SHINE', text: 'Are starch/glue spills cleaned immediately and leaks prevented?', textUr: 'کیا اسٹارچ/گلو کا گرنا فوری صاف کیا جاتا ہے اور لیکج کو روکا گیا ہے؟' },
+                    { id: 'c_std_1', pillar: 'STANDARDIZE', text: 'Are standard floor markings and maximum WIP stack height limits displayed and maintained?', textUr: 'کیا شیٹس کے اسٹیک کی زیادہ سے زیادہ اونچائی کے معیاری نشانات موجود ہیں؟' },
+                    { id: 'c_sus_1', pillar: 'SUSTAIN', text: 'Are operators consistently following the defined reel, WIP and scrap locations throughout all shifts?', textUr: 'کیا تمام شفٹوں میں اپریٹرز طے شدہ قواعد پر مسلسل عمل کر رہے ہیں؟' },
+                    { id: 'c_saf_1', pillar: 'SAFETY', text: 'Are paper reels secured against unintended rolling while stored or waiting for use?', textUr: 'کیا سٹوریج میں رکھی گئی پیپر ریلز کو لڑھکنے سے محفوظ بنانے کے لیے سٹاپر لگائے گئے ہیں؟' },
+                    { id: 'c_saf_3', pillar: 'SAFETY', text: 'Are rotating rollers, gears, belts and nip points properly guarded?', textUr: 'کیا گھومنے والے رولرز، گیئرز اور بیلٹس پر حفاظت کے لیے سیفٹی گارڈز موجود ہیں؟' }
                 ]
             },
             {
                 id: 'manual_die_cut',
                 name: 'Manual Die Cut Area',
+                nameUr: 'مینوئل ڈائی کٹ ایریا (Die Cutting)',
                 icon: 'fa-stamp',
                 desc: 'Flat-bed die cutting machines, active die storage racks, scrap removal.',
+                descUr: 'فلیٹ بیڈ ڈائی کٹنگ مشینیں، ڈائی ریک اور ویسٹ کٹنگ کنٹرول۔',
                 critical: 'Die rack numbering (e.g. Rack A -> A01, A02), preventing die-cutting scrap piles on floor, machine flywheel/gear guards, and safe die handling.',
+                criticalUr: 'ڈائی ریک پر نمبرنگ، فرش پر ردی جمع نہ ہونے دینا، فلائی ویل کے گارڈز اور ڈائی کو سنبھالنے کی حفاظت۔',
                 questions: [
-                    { id: 'md_sort_1', pillar: 'SORT', text: 'Are damaged, obsolete or unused cutting dies identified and removed from the active die rack?' },
-                    { id: 'md_sort_2', pillar: 'SORT', text: 'Are scrap strips and die-cut waste removed before large piles accumulate around machines?' },
-                    { id: 'md_set_1', pillar: 'SET IN ORDER', text: 'Is every cutting die assigned a specific numbered rack location (e.g. Rack A -> A01) and labelled?' },
-                    { id: 'md_set_4', pillar: 'SET IN ORDER', text: 'Are separate floor-marked locations provided for WIP, finished sheets, rejected sheets and scrap?' },
-                    { id: 'md_set_9', pillar: 'SET IN ORDER', text: 'Are walkways kept completely clear of dies, sheet stacks, scrap and temporary tables?' },
-                    { id: 'md_shine_1', pillar: 'SHINE', text: 'Is scrap removed from around flat-bed machines at defined intervals during production?' },
-                    { id: 'md_shine_3', pillar: 'SHINE', text: 'Are flat-bed machines cleaned of paper dust, oil and accumulated residue?' },
-                    { id: 'md_std_1', pillar: 'STANDARDIZE', text: 'Is there a standard rack-location identification system for all cutting dies?' },
-                    { id: 'md_std_6', pillar: 'STANDARDIZE', text: 'Are standard visual photos/standards displayed showing correct condition of flat-bed workstations?' },
-                    { id: 'md_sus_1', pillar: 'SUSTAIN', text: 'Are dies returned to their assigned rack location immediately after use?' },
-                    { id: 'md_saf_1', pillar: 'SAFETY', text: 'Are flywheels, belts, gears and moving machine parts adequately guarded?' },
-                    { id: 'md_saf_2', pillar: 'SAFETY', text: 'Are operators prevented from reaching into dangerous closing/cutting zones during operation?' },
-                    { id: 'md_saf_7', pillar: 'SAFETY', text: 'Are heavy dies stored at appropriate rack heights to reduce manual-handling injury risk?' }
+                    { id: 'md_sort_1', pillar: 'SORT', text: 'Are damaged, obsolete or unused cutting dies identified and removed from the active die rack?', textUr: 'کیا پرانی یا خراب کٹنگ ڈائیز کو ایکٹیو ریک سے ہٹا دیا گیا ہے؟' },
+                    { id: 'md_set_1', pillar: 'SET IN ORDER', text: 'Is every cutting die assigned a specific numbered rack location (e.g. Rack A -> A01) and labelled?', textUr: 'کیا ہر ڈائی کے لیے ریک پر الگ نمبر اور لیبل موجود ہے؟' },
+                    { id: 'md_shine_1', pillar: 'SHINE', text: 'Is scrap removed from around flat-bed machines at defined intervals during production?', textUr: 'کیا پیداوار کے دوران مشین کے گرد سے ویسٹ کٹنگ ساتھ ساتھ اٹھائی جا رہی ہے؟' },
+                    { id: 'md_saf_1', pillar: 'SAFETY', text: 'Are flywheels, belts, gears and moving machine parts adequately guarded?', textUr: 'کیا مشین کے فلائی ویل اور گیئرز کے اوپر سیفٹی گارڈز مکمل ہیں؟' }
                 ]
             },
             {
                 id: 'manual_pasting',
                 name: 'Manual Pasting Area',
+                nameUr: 'مینوئل پیسٹنگ ایریا (Manual Pasting)',
                 icon: 'fa-paste',
                 desc: 'Adhesive application, pasting tables, press rollers, finished bundle stacks.',
+                descUr: 'گلو پیسٹنگ ٹیبلز، پریس رولرز اور بنڈل اسٹیکنگ۔',
                 critical: 'Adhesive spillage control, preventing sheets from direct contact with dirty floor, ergonomic working height, and roller nip guards.',
+                criticalUr: 'گلو گرنے سے بچاؤ، گندے فرش سے شیٹس کی حفاظت، اور رولر نپ گارڈز۔',
                 questions: [
-                    { id: 'mp_sort_1', pillar: 'SORT', text: 'Are unnecessary cardboard pieces, pasted rejects and scrap removed from the pasting area?' },
-                    { id: 'mp_sort_4', pillar: 'SORT', text: 'Are empty glue containers, bottles and packaging removed after use?' },
-                    { id: 'mp_set_1', pillar: 'SET IN ORDER', text: 'Are Input, WIP, Pasted Output, Reject and Scrap areas clearly marked and followed?' },
-                    { id: 'mp_set_4', pillar: 'SET IN ORDER', text: 'Are glue containers kept in one defined, labelled location with spill protection?' },
-                    { id: 'mp_shine_2', pillar: 'SHINE', text: 'Are glue spills cleaned immediately and floors maintained non-slippery?' },
-                    { id: 'mp_shine_3', pillar: 'SHINE', text: 'Are glue containers and pasting rollers kept free from excessive dried adhesive buildup?' },
-                    { id: 'mp_std_4', pillar: 'STANDARDIZE', text: 'Is an approved type, location, and standard procedure defined for glue preparation and storage?' },
-                    { id: 'mp_sus_1', pillar: 'SUSTAIN', text: 'Are operators consistently returning tools and glue containers to designated places?' },
-                    { id: 'mp_saf_1', pillar: 'SAFETY', text: 'Are exposed rotating shafts, belts, pulleys and rollers properly guarded?' },
-                    { id: 'mp_saf_16', pillar: 'SAFETY', text: 'Are operators provided with safe working postures/heights rather than routinely working on the floor?' }
-                ]
-            },
-            {
-                id: 'manual_rotary',
-                name: 'Manual Rotary Area',
-                icon: 'fa-circle-notch',
-                desc: 'Rotary slotting/creasing machines, material feeding, stack organization.',
-                critical: 'Collecting rotary trim scrap at source, clear job tags on all WIP, machine nip/roller guards, and unblocked walkways.',
-                questions: [
-                    { id: 'mr_sort_1', pillar: 'SORT', text: 'Are unnecessary scrap strips and offcuts removed from the rotary machine area?' },
-                    { id: 'mr_set_1', pillar: 'SET IN ORDER', text: 'Are Input, WIP, Output, Extra Sheets, Reject and Scrap locations clearly identified?' },
-                    { id: 'mr_set_5', pillar: 'SET IN ORDER', text: 'Are WIP stacks identified with customer/job number, quantity and next process card?' },
-                    { id: 'mr_shine_1', pillar: 'SHINE', text: 'Is trim scrap collected at source without large piles accumulating on the floor or behind machines?' },
-                    { id: 'mr_std_3', pillar: 'STANDARDIZE', text: 'Is maximum WIP stack height defined and displayed in floor marked zones?' },
-                    { id: 'mr_sus_1', pillar: 'SUSTAIN', text: 'Are scrap-control standards maintained throughout the entire shift?' },
-                    { id: 'mr_saf_1', pillar: 'SAFETY', text: 'Are rotating rollers, gears, chains and dangerous nip points properly guarded?' },
-                    { id: 'mr_saf_4', pillar: 'SAFETY', text: 'Are emergency stops clearly visible, accessible and fully functional?' }
+                    { id: 'mp_sort_1', pillar: 'SORT', text: 'Are unnecessary cardboard pieces, pasted rejects and scrap removed from the pasting area?', textUr: 'کیا پیسٹنگ ایریا سے فضول گتے کے ٹکڑے اور ویسٹ ہٹا دی گئی ہے؟' },
+                    { id: 'mp_shine_2', pillar: 'SHINE', text: 'Are glue spills cleaned immediately and floors maintained non-slippery?', textUr: 'کیا گلو کے قطرے گرنے پر فرش کو فوری صاف کیا جاتا ہے تاکہ پھسلن نہ ہو؟' },
+                    { id: 'mp_saf_1', pillar: 'SAFETY', text: 'Are exposed rotating shafts, belts, pulleys and rollers properly guarded?', textUr: 'کیا تمام روٹیٹنگ شافٹ اور رولرز سیفٹی گارڈ سے ڈھکے ہوئے ہیں؟' }
                 ]
             },
             {
                 id: 'flexo_4c_new',
                 name: 'Flexo 4 Color New Machine',
+                nameUr: 'فلیکسو 4 کلر نئی مشین (Flexo 4C New)',
                 icon: 'fa-print',
                 desc: 'High-speed 4-color flexo printer slotter unit, ink pumping system, stacker.',
+                descUr: 'ہائی اسپیڈ 4 کلر پرنٹر سلاٹر، انک پمپنگ سسٹم اور اسٹیکر۔',
                 critical: 'Ink spill control, printing plate storage, hose/cable organization, electrical panel clearance, and interlocking guards.',
+                criticalUr: 'سیاہی (Ink) پھیلنے سے بچاؤ، پرنٹنگ پلیٹ کی ترتیب، اور برقی پینل کی صفائی۔',
                 questions: [
-                    { id: 'f4n_sort_1', pillar: 'SORT', text: 'Are unnecessary cardboard strips, waste sheets and printing scrap removed around the machine?' },
-                    { id: 'f4n_set_2', pillar: 'SET IN ORDER', text: 'Are ink containers arranged by color/type, properly labelled, and stored on spill containment trays?' },
-                    { id: 'f4n_set_4', pillar: 'SET IN ORDER', text: 'Are ink hoses and power cables routed so they do not create trip hazards on walkways?' },
-                    { id: 'f4n_shine_2', pillar: 'SHINE', text: 'Are ink spills on the floor or machine frame cleaned immediately?' },
-                    { id: 'f4n_shine_4', pillar: 'SHINE', text: 'Are printing rollers, anilox rolls, and ink pans cleaned according to schedule?' },
-                    { id: 'f4n_std_1', pillar: 'STANDARDIZE', text: 'Are standard procedures defined for ink handling, color changeover, and waste removal?' },
-                    { id: 'f4n_sus_1', pillar: 'SUSTAIN', text: 'Are defined 6S conditions maintained throughout the shift and after every job changeover?' },
-                    { id: 'f4n_saf_1', pillar: 'SAFETY', text: 'Are machine safety interlocks, roller guards, and emergency stops operational and not bypassed?' },
-                    { id: 'f4n_saf_7', pillar: 'SAFETY', text: 'Are inks and printing chemicals stored safely away from electrical panels and ignition sources?' }
-                ]
-            },
-            {
-                id: 'flexo_2c_new',
-                name: 'Flexo 2 Color New Machine',
-                icon: 'fa-print',
-                desc: '2-Color flexo printing unit, slotting/die-cutting section, feeder.',
-                critical: 'Cardboard trim accumulation control, ink bucket cleanliness, clear aisle pathways, and proper chemical labelling.',
-                questions: [
-                    { id: 'f2n_sort_1', pillar: 'SORT', text: 'Are cardboard cuttings and trim removed before excessive accumulation occurs?' },
-                    { id: 'f2n_set_1', pillar: 'SET IN ORDER', text: 'Are Raw Material, WIP, Finished Product, Reject, and Ink kept in marked zones?' },
-                    { id: 'f2n_shine_3', pillar: 'SHINE', text: 'Is the floor around ink containers dry, clean, and free from slippery chemical residue?' },
-                    { id: 'f2n_std_1', pillar: 'STANDARDIZE', text: 'Is a defined standard available for maximum allowable trim waste accumulation?' },
-                    { id: 'f2n_sus_1', pillar: 'SUSTAIN', text: 'Is the section restored to standard condition after every job changeover?' },
-                    { id: 'f2n_saf_1', pillar: 'SAFETY', text: 'Are all moving rollers, gears, chains and nip points adequately guarded?' }
-                ]
-            },
-            {
-                id: 'flexo_2c_old',
-                name: 'Flexo 2 Color Old Machine',
-                icon: 'fa-sliders',
-                desc: 'Legacy 2-color flexo press, manual ink adjustments, drive mechanisms.',
-                critical: 'Oil/grease leak containment, deep cleaning behind machine, physical drive guard integrity, and scrap clearance.',
-                questions: [
-                    { id: 'f2o_sort_1', pillar: 'SORT', text: 'Are old tools, obsolete sample sheets, and empty chemical cans removed from machine surrounding?' },
-                    { id: 'f2o_set_1', pillar: 'SET IN ORDER', text: 'Are machine setup tools, spanners, and ink buckets kept in dedicated, labeled locations?' },
-                    { id: 'f2o_shine_1', pillar: 'SHINE', text: 'Are oil or grease leaks from older gearboxes identified, contained, and repaired?' },
-                    { id: 'f2o_shine_2', pillar: 'SHINE', text: 'Are inaccessible areas underneath and behind the machine cleaned regularly?' },
-                    { id: 'f2o_std_1', pillar: 'STANDARDIZE', text: 'Are shift cleaning checklists and lubrication standards displayed near the machine?' },
-                    { id: 'f2o_sus_1', pillar: 'SUSTAIN', text: 'Is 6S discipline maintained consistently despite the age of the equipment?' },
-                    { id: 'f2o_saf_1', pillar: 'SAFETY', text: 'Are exposed belts, chains, and vintage drive gears fully enclosed with sturdy safety guards?' },
-                    { id: 'f2o_saf_2', pillar: 'SAFETY', text: 'Are electrical switches and control panels maintained closed, clean, and safe from oil contact?' }
-                ]
-            },
-            {
-                id: 'flexo_4c_old',
-                name: 'Flexo 4 Color Old Machine',
-                icon: 'fa-sliders',
-                desc: 'Legacy 4-color flexo line, ink pan maintenance, manual stacker unit.',
-                critical: 'Ink pan/pump leakages, floor cleanliness, keeping walkways free of stacked corrugated sheets.',
-                questions: [
-                    { id: 'f4o_sort_1', pillar: 'SORT', text: 'Are rejected printed sheets and obsolete stereos/plates segregated and cleared?' },
-                    { id: 'f4o_set_1', pillar: 'SET IN ORDER', text: 'Are ink buckets stored neatly in designated spill-catch trays rather than direct on floor?' },
-                    { id: 'f4o_shine_1', pillar: 'SHINE', text: 'Are dried ink buildup and paper dust removed from machine frame and roller ends?' },
-                    { id: 'f4o_std_1', pillar: 'STANDARDIZE', text: 'Are maximum allowable sheet stack heights clearly marked on walls/pillars?' },
-                    { id: 'f4o_sus_1', pillar: 'SUSTAIN', text: 'Are daily 6S audits completed and action points tracked by the shift operator?' },
-                    { id: 'f4o_saf_1', pillar: 'SAFETY', text: 'Are emergency stop buttons accessible, clearly visible, and functional at feeding/delivery ends?' }
+                    { id: 'f4n_sort_1', pillar: 'SORT', text: 'Are unnecessary cardboard strips, waste sheets and printing scrap removed around the machine?', textUr: 'کیا پرنٹنگ ایریا سے فالتو کٹنگ اور ردی شیٹس ہٹا دی گئی ہیں؟' },
+                    { id: 'f4n_set_2', pillar: 'SET IN ORDER', text: 'Are ink containers arranged by color/type, properly labelled, and stored on spill containment trays?', textUr: 'کیا انک بالٹیاں رنگ کے لحاظ سے ترتیب سے ڈرپ ٹرے میں رکھی گئی ہیں؟' },
+                    { id: 'f4n_shine_2', pillar: 'SHINE', text: 'Are ink spills on the floor or machine frame cleaned immediately?', textUr: 'کیا مشین یا فرش پر گرنے والی سیاہی فوری صاف کی جاتی ہے؟' },
+                    { id: 'f4n_saf_1', pillar: 'SAFETY', text: 'Are machine safety interlocks, roller guards, and emergency stops operational and not bypassed?', textUr: 'کیا سیفٹی انٹر لاکس اور ایمرجنسی اسٹاپ بٹن مکمل فعال ہیں؟' }
                 ]
             },
             {
                 id: 'folder_gluer',
                 name: 'Folder Area (Folder & Gluer)',
+                nameUr: 'فولڈر گلوئر ایریا (Folder & Gluer)',
                 icon: 'fa-box-open',
                 desc: 'Automatic/manual folder gluer machines, strapping, bundle stacking, glue unit.',
+                descUr: 'آٹومیٹک/مینوئل فولڈر گلوئر، اسٹریپنگ اور بنڈل پیکنگ۔',
                 critical: 'Loose carton scrap below machine, glue bucket station organization, unobstructed fire extinguishers, and stable stack height.',
+                criticalUr: 'مشین کے نیچے سے کاٹن اسکریپ کی صفائی، اور فائر ایکسٹنگوئشر کے راستے کی کشادگی۔',
                 questions: [
-                    { id: 'fg_sort_1', pillar: 'SORT', text: 'Are rejected cartons, waste sheets, and broken strapping bands removed from the section?' },
-                    { id: 'fg_set_1', pillar: 'SET IN ORDER', text: 'Are Raw Material, WIP, Finished Goods, Waste, and Pallets stored in clearly identified zones?' },
-                    { id: 'fg_set_4', pillar: 'SET IN ORDER', text: 'Are glue buckets/drums kept at a designated glue station instead of randomly around the machine?' },
-                    { id: 'fg_set_8', pillar: 'SET IN ORDER', text: 'Are empty pallets stored inside marked "Pallet Parking" zones rather than blocking aisles?' },
-                    { id: 'fg_shine_1', pillar: 'SHINE', text: 'Is carton scrap removed regularly from underneath and around the folder-gluer machine?' },
-                    { id: 'fg_shine_2', pillar: 'SHINE', text: 'Are glue spills and dried adhesive residues cleaned from belts, guides, rollers, and floor?' },
-                    { id: 'fg_std_2', pillar: 'STANDARDIZE', text: 'Is a maximum allowable carton stack height defined and visibly displayed?' },
-                    { id: 'fg_sus_1', pillar: 'SUSTAIN', text: 'Are operators maintaining scrap-free floors during active production runs?' },
-                    { id: 'fg_saf_1', pillar: 'SAFETY', text: 'Are all high-speed belts, folding hooks, gears, and nip points properly guarded?' },
-                    { id: 'fg_saf_10', pillar: 'SAFETY', text: 'Are fire extinguishers and emergency exit routes completely unobstructed by material stacks?' }
+                    { id: 'fg_sort_1', pillar: 'SORT', text: 'Are rejected cartons, waste sheets, and broken strapping bands removed from the section?', textUr: 'کیا ریجیکٹڈ کاٹن اور ٹوٹی ہوئی اسٹریپنگ پٹیاں ہٹا دی گئی ہیں؟' },
+                    { id: 'fg_shine_1', pillar: 'SHINE', text: 'Is carton scrap removed regularly from underneath and around the folder-gluer machine?', textUr: 'کیا فولڈر گلوئر مشین کے نیچے سے ویسٹ باقاعدگی سے صاف کی جاتی ہے؟' },
+                    { id: 'fg_saf_10', pillar: 'SAFETY', text: 'Are fire extinguishers and emergency exit routes completely unobstructed by material stacks?', textUr: 'کیا فائر سائلنڈر اور ایمرجنسی راستے کسی بھی سامان سے پاک اور کھلے ہیں؟' }
                 ]
             }
         ];
 
-        // Audit State Management
+        // Audit State Management with Before & After Image Persistence
         let currentAreaId = 'corrugation';
-        let auditData = {}; // Stores scores, defects, action items per question ID
+        let auditData = {}; // Stores scores, defects, actions, beforePic, afterPic, status
         let currentPillarFilter = 'ALL';
         let radarChartInstance = null;
 
         // Initialize Application
-        document.onload = initApp();
-
-        function initApp() {
-            // Set current date
+        window.onload = function() {
             document.getElementById('auditDate').valueAsDate = new Date();
-            
-            // Initialize Audit Data structure
-            plantAreas.forEach(area => {
-                area.questions.forEach(q => {
-                    auditData[q.id] = {
-                        score: 5, // Default full score
-                        defect: '',
-                        action: '',
-                        owner: '',
-                        dueDate: ''
-                    };
-                });
-            });
-
+            initAuditData();
             renderAreaNav();
             loadAreaAudit(currentAreaId);
             setupEventListeners();
+            applyLanguageUI();
+        };
+
+        function initAuditData() {
+            plantAreas.forEach(area => {
+                area.questions.forEach(q => {
+                    if (!auditData[q.id]) {
+                        auditData[q.id] = {
+                            score: 5,
+                            defect: '',
+                            action: '',
+                            owner: '',
+                            dueDate: '',
+                            beforePic: null,
+                            afterPic: null,
+                            resolved: false
+                        };
+                    }
+                });
+            });
         }
 
-        // Render Sidebar Area Selection Navigation
+        // Language Switcher Function
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Highlight Buttons
+            ['En', 'Ur', 'Dual'].forEach(l => {
+                const btn = document.getElementById(`langBtn${l}`);
+                if (l.toLowerCase() === lang) {
+                    btn.className = 'px-2.5 py-1 rounded font-bold transition-all bg-blue-600 text-white';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded font-bold transition-all text-slate-300 hover:text-white';
+                }
+            });
+
+            applyLanguageUI();
+            renderAreaNav();
+            loadAreaAudit(currentAreaId);
+        }
+
+        function applyLanguageUI() {
+            const dict = uiDict[currentLang] || uiDict.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.innerText = dict[key];
+                }
+            });
+
+            if (currentLang === 'ur') {
+                document.body.classList.add('lang-ur');
+            } else {
+                document.body.classList.remove('lang-ur');
+            }
+        }
+
+        // Render Sidebar Area Navigation
         function renderAreaNav() {
             const navContainer = document.getElementById('areaNav');
             navContainer.innerHTML = '';
 
             plantAreas.forEach(area => {
                 const isActive = area.id === currentAreaId;
+                const areaName = currentLang === 'ur' ? (area.nameUr || area.name) : (currentLang === 'dual' ? `${area.name} / ${area.nameUr || ''}` : area.name);
+                
                 const btn = document.createElement('button');
                 btn.className = `w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-between gap-2 ${
                     isActive 
@@ -492,7 +592,7 @@
                 btn.innerHTML = `
                     <div class="flex items-center gap-2.5 truncate">
                         <i class="fa-solid ${area.icon} ${isActive ? 'text-white' : 'text-slate-500'} w-4 text-center"></i>
-                        <span class="truncate">${area.name}</span>
+                        <span class="truncate">${areaName}</span>
                     </div>
                     <span id="nav-score-${area.id}" class="text-[10px] px-1.5 py-0.5 rounded ${isActive ? 'bg-blue-700 text-blue-100' : 'bg-slate-200 text-slate-600'} font-bold">
                         100%
@@ -502,46 +602,36 @@
             });
         }
 
-        // Switch Active Area
         function switchArea(areaId) {
             currentAreaId = areaId;
             renderAreaNav();
             loadAreaAudit(areaId);
         }
 
-        // Load Active Area Checklist & Analytics
         function loadAreaAudit(areaId) {
             const area = plantAreas.find(a => a.id === areaId);
             if (!area) return;
 
-            document.getElementById('activeAreaTitle').innerText = area.name;
-            document.getElementById('activeAreaDesc').innerText = area.desc;
-            document.getElementById('criticalFocusText').innerText = area.critical;
+            const name = currentLang === 'ur' ? (area.nameUr || area.name) : (currentLang === 'dual' ? `${area.name} (${area.nameUr || ''})` : area.name);
+            const desc = currentLang === 'ur' ? (area.descUr || area.desc) : area.desc;
+            const critical = currentLang === 'ur' ? (area.criticalUr || area.critical) : area.critical;
 
-            // Sync print header fields
+            document.getElementById('activeAreaTitle').innerText = name;
+            document.getElementById('activeAreaDesc').innerText = desc;
+            document.getElementById('criticalFocusText').innerText = critical;
+
             document.getElementById('printAreaTitle').innerText = `AREA: ${area.name.toUpperCase()}`;
 
             renderQuestions();
             calculateScores();
         }
 
-        // Filter Questions by Pillar Tab
         function filterPillar(pillar) {
             currentPillarFilter = pillar;
-            
-            // Highlight active tab
-            document.querySelectorAll('.pillar-tab').forEach(tab => {
-                if (tab.innerText.includes(pillar) || (pillar === 'ALL' && tab.innerText.includes('ALL'))) {
-                    tab.className = 'pillar-tab active px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white';
-                } else {
-                    tab.className = 'pillar-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200';
-                }
-            });
-
             renderQuestions();
         }
 
-        // Render Questions for Current Area & Filter
+        // Render Question Cards with Dynamic Urdu/English text
         function renderQuestions() {
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
@@ -553,27 +643,24 @@
                 ? area.questions 
                 : area.questions.filter(q => q.pillar === currentPillarFilter);
 
-            if (filteredQuestions.length === 0) {
-                container.innerHTML = `<p class="text-center py-8 text-slate-400 text-xs italic">No questions found for the selected 6S pillar filter.</p>`;
-                return;
-            }
-
-            filteredQuestions.forEach((q, idx) => {
+            filteredQuestions.forEach((q) => {
                 const itemData = auditData[q.id];
                 const card = document.createElement('div');
                 card.className = `p-4 rounded-xl border transition-all ${
                     itemData.score < 3 ? 'bg-rose-50/40 border-rose-200' : 'bg-white border-slate-200 hover:border-slate-300'
                 }`;
 
+                const qText = currentLang === 'ur' ? (q.textUr || q.text) : (currentLang === 'dual' ? `${q.text}<br><span class="text-blue-700 font-semibold">${q.textUr || ''}</span>` : q.text);
+
                 card.innerHTML = `
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div class="flex items-start gap-3 flex-grow">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase ${getPillarBadgeStyle(q.pillar)}">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase bg-blue-100 text-blue-700 border border-blue-200">
                                 ${q.pillar}
                             </span>
                             <div class="space-y-0.5">
-                                <p class="text-xs font-bold text-slate-800">${q.text}</p>
-                                <p class="text-[11px] text-slate-400">Item ID: ${q.id.toUpperCase()}</p>
+                                <p class="text-xs font-bold text-slate-800 leading-relaxed">${qText}</p>
+                                <p class="text-[10px] text-slate-400">ID: ${q.id.toUpperCase()}</p>
                             </div>
                         </div>
 
@@ -582,7 +669,7 @@
                             ${[0,1,2,3,4,5].map(pts => `
                                 <button onclick="updateScore('${q.id}', ${pts})" class="w-7 h-7 rounded text-xs font-bold transition-all ${
                                     itemData.score === pts 
-                                    ? getScoreBtnStyle(pts) 
+                                    ? (pts >= 4 ? 'bg-emerald-600 text-white' : pts === 3 ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white')
                                     : 'text-slate-600 hover:bg-slate-200'
                                 }">
                                     ${pts}
@@ -590,69 +677,17 @@
                             `).join('')}
                         </div>
                     </div>
-
-                    <!-- Non-Conformance Action Inputs (Shows if score < 3) -->
-                    ${itemData.score < 3 ? `
-                        <div class="mt-3 pt-3 border-t border-rose-200 grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold text-rose-800 uppercase mb-0.5">Observed Defect</label>
-                                <input type="text" value="${itemData.defect}" onchange="updateCapa('${q.id}', 'defect', this.value)" placeholder="Describe non-compliance..." class="w-full text-xs px-2 py-1.5 border border-rose-300 rounded bg-white outline-none focus:ring-1 focus:ring-rose-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-rose-800 uppercase mb-0.5">Corrective Action (CAPA)</label>
-                                <input type="text" value="${itemData.action}" onchange="updateCapa('${q.id}', 'action', this.value)" placeholder="Required improvement action..." class="w-full text-xs px-2 py-1.5 border border-rose-300 rounded bg-white outline-none focus:ring-1 focus:ring-rose-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-rose-800 uppercase mb-0.5">Owner</label>
-                                    <input type="text" value="${itemData.owner}" onchange="updateCapa('${q.id}', 'owner', this.value)" placeholder="Assignee" class="w-full text-xs px-2 py-1.5 border border-rose-300 rounded bg-white outline-none focus:ring-1 focus:ring-rose-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-rose-800 uppercase mb-0.5">Due Date</label>
-                                    <input type="date" value="${itemData.dueDate}" onchange="updateCapa('${q.id}', 'dueDate', this.value)" class="w-full text-xs px-1 py-1 border border-rose-300 rounded bg-white outline-none focus:ring-1 focus:ring-rose-500">
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Pillar Badge Styling Helper
-        function getPillarBadgeStyle(pillar) {
-            switch(pillar) {
-                case 'SORT': return 'bg-blue-100 text-blue-700 border border-blue-200';
-                case 'SET IN ORDER': return 'bg-indigo-100 text-indigo-700 border border-indigo-200';
-                case 'SHINE': return 'bg-amber-100 text-amber-700 border border-amber-200';
-                case 'STANDARDIZE': return 'bg-purple-100 text-purple-700 border border-purple-200';
-                case 'SUSTAIN': return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-                case 'SAFETY': return 'bg-rose-100 text-rose-700 border border-rose-200';
-                default: return 'bg-slate-100 text-slate-700';
-            }
-        }
-
-        // Score Button Style
-        function getScoreBtnStyle(score) {
-            if (score >= 4) return 'bg-emerald-600 text-white shadow-sm';
-            if (score === 3) return 'bg-amber-500 text-white shadow-sm';
-            return 'bg-rose-600 text-white shadow-sm';
-        }
-
-        // Update Score for a Question
         function updateScore(qId, score) {
             auditData[qId].score = score;
             renderQuestions();
             calculateScores();
         }
 
-        // Update CAPA Inputs
-        function updateCapa(qId, field, value) {
-            auditData[qId][field] = value;
-            renderCapaTable();
-        }
-
-        // Set All Scores for Current Area
         function setAllScores(score) {
             const area = plantAreas.find(a => a.id === currentAreaId);
             if (!area) return;
@@ -663,85 +698,174 @@
             calculateScores();
         }
 
-        // Reset Entire Audit Sheet
-        function resetCurrentAudit() {
-            if (confirm('Are you sure you want to reset all scores and audit entries?')) {
-                Object.keys(auditData).forEach(qId => {
-                    auditData[qId] = { score: 5, defect: '', action: '', owner: '', dueDate: '' };
-                });
-                renderQuestions();
-                calculateScores();
-            }
+        // CAPA Before and After Picture Upload Handlers
+        function handleImageUpload(qId, type, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgData = e.target.result;
+                if (type === 'before') {
+                    auditData[qId].beforePic = imgData;
+                } else if (type === 'after') {
+                    auditData[qId].afterPic = imgData;
+                }
+                
+                // Auto-mark resolved if both pictures and action exist
+                if (auditData[qId].beforePic && auditData[qId].afterPic) {
+                    auditData[qId].resolved = true;
+                }
+
+                renderCapaTable();
+            };
+            reader.readAsDataURL(file);
         }
 
-        // Calculate Scores & Update Dashboard Visuals
+        function updateCapaField(qId, field, val) {
+            auditData[qId][field] = val;
+            renderCapaTable();
+        }
+
+        // Render CAPA Log with Interactive Before & After Picture Uploads
+        function renderCapaTable() {
+            const tableBody = document.getElementById('capaTableBody');
+            const badge = document.getElementById('capaCountBadge');
+            const area = plantAreas.find(a => a.id === currentAreaId);
+            if (!area) return;
+
+            const nonConformances = area.questions.filter(q => auditData[q.id].score < 3);
+
+            badge.innerText = `${nonConformances.length} CAPA Items`;
+            badge.className = nonConformances.length > 0 ? 'text-xs font-bold px-2.5 py-1 bg-rose-100 text-rose-700 rounded-full' : 'text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full';
+
+            if (nonConformances.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-6 text-slate-400 italic">No non-conformances flagged. All items scored at acceptable levels (>=3).</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            nonConformances.forEach((q, idx) => {
+                const item = auditData[q.id];
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-all border-b border-slate-200';
+                
+                const qText = currentLang === 'ur' ? (q.textUr || q.text) : q.text;
+
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-slate-500 text-center">${idx + 1}</td>
+                    <td class="p-2 font-semibold text-slate-800 text-xs">
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 uppercase mr-1">${q.pillar}</span><br>
+                        ${qText}
+                    </td>
+                    <td class="p-2 text-center">
+                        <span class="px-2 py-0.5 rounded font-extrabold text-white bg-rose-600 text-[11px]">${item.score}</span>
+                    </td>
+                    <td class="p-2 space-y-1">
+                        <input type="text" value="${item.defect}" onchange="updateCapaField('${q.id}', 'defect', this.value)" placeholder="Defect description / خرابی کا کیفیات" class="w-full text-xs px-2 py-1 border rounded bg-white">
+                        <input type="text" value="${item.action}" onchange="updateCapaField('${q.id}', 'action', this.value)" placeholder="Corrective Action / اصلاحی عمل" class="w-full text-xs px-2 py-1 border rounded bg-white">
+                        <div class="grid grid-cols-2 gap-1 text-[10px]">
+                            <input type="text" value="${item.owner}" onchange="updateCapaField('${q.id}', 'owner', this.value)" placeholder="Owner / ذمہ دار" class="px-1.5 py-0.5 border rounded">
+                            <input type="date" value="${item.dueDate}" onchange="updateCapaField('${q.id}', 'dueDate', this.value)" class="px-1.5 py-0.5 border rounded">
+                        </div>
+                    </td>
+
+                    <!-- Before Picture Upload Cell -->
+                    <td class="p-2 text-center">
+                        ${item.beforePic ? `
+                            <div class="relative group w-20 h-16 mx-auto">
+                                <img src="${item.beforePic}" class="w-full h-full object-cover rounded border border-rose-300 shadow-sm">
+                                <button onclick="removeImage('${q.id}', 'before')" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow">×</button>
+                            </div>
+                        ` : `
+                            <label class="cursor-pointer border-2 border-dashed border-rose-300 bg-rose-50/50 hover:bg-rose-100/50 p-2 rounded-lg flex flex-col items-center justify-center text-[10px] text-rose-700 transition-all">
+                                <i class="fa-solid fa-camera text-rose-500 text-sm mb-0.5"></i>
+                                <span>Upload Before</span>
+                                <input type="file" accept="image/*" onchange="handleImageUpload('${q.id}', 'before', event)" class="hidden">
+                            </label>
+                        `}
+                    </td>
+
+                    <!-- After Picture Upload Cell -->
+                    <td class="p-2 text-center">
+                        ${item.afterPic ? `
+                            <div class="relative group w-20 h-16 mx-auto">
+                                <img src="${item.afterPic}" class="w-full h-full object-cover rounded border border-emerald-300 shadow-sm">
+                                <button onclick="removeImage('${q.id}', 'after')" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow">×</button>
+                            </div>
+                        ` : `
+                            <label class="cursor-pointer border-2 border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/50 p-2 rounded-lg flex flex-col items-center justify-center text-[10px] text-emerald-700 transition-all">
+                                <i class="fa-solid fa-camera-retro text-emerald-500 text-sm mb-0.5"></i>
+                                <span>Upload After</span>
+                                <input type="file" accept="image/*" onchange="handleImageUpload('${q.id}', 'after', event)" class="hidden">
+                            </label>
+                        `}
+                    </td>
+
+                    <!-- CAPA Resolution Verification Badge -->
+                    <td class="p-2 text-center">
+                        ${item.beforePic && item.afterPic ? `
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Resolved
+                            </span>
+                        ` : `
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 bg-amber-100 text-amber-800 rounded-full border border-amber-300">
+                                <i class="fa-solid fa-hourglass-half text-amber-600"></i> Needs Photos
+                            </span>
+                        `}
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function removeImage(qId, type) {
+            if (type === 'before') auditData[qId].beforePic = null;
+            if (type === 'after') auditData[qId].afterPic = null;
+            auditData[qId].resolved = false;
+            renderCapaTable();
+        }
+
+        // Calculate Scores & Update Analytics
         function calculateScores() {
             const area = plantAreas.find(a => a.id === currentAreaId);
             if (!area) return;
 
-            let totalAchieved = 0;
+            let totalAchieved = area.questions.reduce((sum, q) => sum + auditData[q.id].score, 0);
             let totalPossible = area.questions.length * 5;
+            let overallPct = Math.round((totalAchieved / totalPossible) * 100);
 
-            // Pillar Scores Breakdown
-            const pillars = ['SORT', 'SET IN ORDER', 'SHINE', 'STANDARDIZE', 'SUSTAIN', 'SAFETY'];
-            const pillarScores = {};
-            
-            pillars.forEach(p => {
-                const pQuestions = area.questions.filter(q => q.pillar === p);
-                if (pQuestions.length > 0) {
-                    const achieved = pQuestions.reduce((sum, q) => sum + auditData[q.id].score, 0);
-                    const possible = pQuestions.length * 5;
-                    pillarScores[p] = {
-                        achieved,
-                        possible,
-                        percentage: Math.round((achieved / possible) * 100)
-                    };
-                } else {
-                    pillarScores[p] = { achieved: 0, possible: 0, percentage: 100 };
-                }
-            });
-
-            // Overall Score
-            totalAchieved = area.questions.reduce((sum, q) => sum + auditData[q.id].score, 0);
-            const overallPct = Math.round((totalAchieved / totalPossible) * 100);
-
-            // Update DOM Elements
             document.getElementById('overallPercentage').innerText = `${overallPct}%`;
             document.getElementById('overallScoreRatio').innerText = `(${totalAchieved} / ${totalPossible} pts)`;
             document.getElementById('overallProgressBar').style.width = `${overallPct}%`;
             document.getElementById('printOverallScore').innerText = `${overallPct}%`;
 
-            // Score Rating Badge
-            const badge = document.getElementById('scoreBadge');
-            const ratingText = document.getElementById('scoreRatingText');
-            if (overallPct >= 90) {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-                badge.innerText = 'EXCELLENT';
-                ratingText.innerText = 'Area exceeds standard 6S requirements.';
-            } else if (overallPct >= 75) {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30';
-                badge.innerText = 'GOOD';
-                ratingText.innerText = 'Acceptable condition with minor non-conformances.';
-            } else if (overallPct >= 60) {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';
-                badge.innerText = 'NEEDS IMPROVEMENT';
-                ratingText.innerText = 'Requires immediate attention on flagged points.';
-            } else {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';
-                badge.innerText = 'CRITICAL RISK';
-                ratingText.innerText = 'Substandard 6S compliance. Priority CAPA required.';
-            }
-
-            // Update Navigation Score Badge
             const navBadge = document.getElementById(`nav-score-${currentAreaId}`);
             if (navBadge) navBadge.innerText = `${overallPct}%`;
+
+            // Calculate Pillars
+            const pillars = ['SORT', 'SET IN ORDER', 'SHINE', 'STANDARDIZE', 'SUSTAIN', 'SAFETY'];
+            const pillarScores = {};
+            pillars.forEach(p => {
+                const pQuestions = area.questions.filter(q => q.pillar === p);
+                if (pQuestions.length > 0) {
+                    const achieved = pQuestions.reduce((sum, q) => sum + auditData[q.id].score, 0);
+                    const possible = pQuestions.length * 5;
+                    pillarScores[p] = { achieved, possible, percentage: Math.round((achieved / possible) * 100) };
+                } else {
+                    pillarScores[p] = { achieved: 0, possible: 0, percentage: 100 };
+                }
+            });
 
             renderPillarMetrics(pillarScores);
             updateRadarChart(pillarScores);
             renderCapaTable();
         }
 
-        // Render Pillar Metric Mini Cards
         function renderPillarMetrics(scores) {
             const container = document.getElementById('pillarMetricsContainer');
             container.innerHTML = '';
@@ -749,14 +873,14 @@
             Object.keys(scores).forEach(pillar => {
                 const s = scores[pillar];
                 const card = document.createElement('div');
-                card.className = 'p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col justify-between';
+                card.className = 'p-2 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col justify-between';
                 card.innerHTML = `
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-500">
                         <span>${pillar}</span>
                         <span>${s.achieved}/${s.possible}</span>
                     </div>
-                    <div class="text-base font-extrabold text-slate-800 mt-1">${s.percentage}%</div>
-                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                    <div class="text-sm font-extrabold text-slate-800 mt-0.5">${s.percentage}%</div>
+                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1 overflow-hidden">
                         <div class="h-full ${s.percentage >= 80 ? 'bg-emerald-500' : s.percentage >= 60 ? 'bg-amber-500' : 'bg-rose-500'}" style="width: ${s.percentage}%"></div>
                     </div>
                 `;
@@ -764,15 +888,12 @@
             });
         }
 
-        // Render Radar Chart for Visual Feedback
         function updateRadarChart(scores) {
             const ctx = document.getElementById('pillarRadarChart').getContext('2d');
             const labels = Object.keys(scores);
             const dataValues = labels.map(p => scores[p].percentage);
 
-            if (radarChartInstance) {
-                radarChartInstance.destroy();
-            }
+            if (radarChartInstance) radarChartInstance.destroy();
 
             radarChartInstance = new Chart(ctx, {
                 type: 'radar',
@@ -784,83 +905,130 @@
                         backgroundColor: 'rgba(37, 99, 235, 0.15)',
                         borderColor: 'rgba(37, 99, 235, 0.8)',
                         borderWidth: 2,
-                        pointBackgroundColor: '#2563eb',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#2563eb'
+                        pointBackgroundColor: '#2563eb'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(0,0,0,0.08)' },
-                            grid: { color: 'rgba(0,0,0,0.08)' },
-                            pointLabels: { font: { size: 9, weight: 'bold' } },
-                            suggestedMin: 0,
-                            suggestedMax: 100,
-                            ticks: { stepSize: 25, display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false } } },
+                    plugins: { legend: { display: false } }
                 }
             });
         }
 
-        // Render CAPA Table
-        function renderCapaTable() {
-            const tableBody = document.getElementById('capaTableBody');
-            const badge = document.getElementById('capaCountBadge');
-            const area = plantAreas.find(a => a.id === currentAreaId);
-            if (!area) return;
+        // Save Daily Audit Report Engine (Firestore & Local)
+        async function saveDailyAuditReport() {
+            const plant = document.getElementById('auditPlant').value || 'Main Plant';
+            const auditor = document.getElementById('auditorName').value || 'Unassigned';
+            const supervisor = document.getElementById('supervisorName').value || 'Unassigned';
+            const date = document.getElementById('auditDate').value || new Date().toISOString().split('T')[0];
+            const shift = document.getElementById('auditShift').value || 'Shift A';
 
-            const nonConformances = area.questions.filter(q => auditData[q.id].score < 3);
+            const activeArea = plantAreas.find(a => a.id === currentAreaId);
+            const totalAchieved = activeArea.questions.reduce((sum, q) => sum + auditData[q.id].score, 0);
+            const totalPossible = activeArea.questions.length * 5;
+            const scorePct = Math.round((totalAchieved / totalPossible) * 100);
 
-            badge.innerText = `${nonConformances.length} Action Items`;
-            if (nonConformances.length > 0) {
-                badge.className = 'text-xs font-bold px-2.5 py-1 bg-rose-100 text-rose-700 rounded-full';
-            } else {
-                badge.className = 'text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full';
+            const reportPayload = {
+                plant,
+                auditor,
+                supervisor,
+                date,
+                shift,
+                areaId: currentAreaId,
+                areaName: activeArea.name,
+                scorePct,
+                timestamp: new Date().toISOString(),
+                auditItems: activeArea.questions.map(q => ({
+                    id: q.id,
+                    text: q.text,
+                    score: auditData[q.id].score,
+                    defect: auditData[q.id].defect,
+                    action: auditData[q.id].action,
+                    owner: auditData[q.id].owner,
+                    beforePic: auditData[q.id].beforePic,
+                    afterPic: auditData[q.id].afterPic,
+                    resolved: auditData[q.id].resolved
+                }))
+            };
+
+            // Save to LocalStorage History List
+            const existingHistory = JSON.parse(localStorage.getItem('6s_audit_reports') || '[]');
+            existingHistory.unshift(reportPayload);
+            localStorage.setItem('6s_audit_reports', JSON.stringify(existingHistory));
+
+            // Try Cloud Firestore Persistence
+            try {
+                if (window.db && window.appId) {
+                    const reportsRef = collection(window.db, 'artifacts', window.appId, 'public', 'data', 'audit_reports');
+                    await addDoc(reportsRef, reportPayload);
+                }
+            } catch (err) {
+                console.warn("Cloud save notice:", err);
             }
 
-            if (nonConformances.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-6 text-slate-400 italic">No non-conformances flagged. All items scored at acceptable levels (>=3).</td>
-                    </tr>
-                `;
+            alert(`Daily Audit Report Saved Successfully!\nArea: ${activeArea.name}\nScore: ${scorePct}%\nAuditor: ${auditor}`);
+        }
+
+        // Audit History Modal Management
+        async function openAuditHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const listContainer = document.getElementById('historyModalList');
+            modal.classList.remove('hidden');
+
+            let reports = JSON.parse(localStorage.getItem('6s_audit_reports') || '[]');
+
+            // Attempt to load cloud documents
+            try {
+                if (window.db && window.appId) {
+                    const reportsRef = collection(window.db, 'artifacts', window.appId, 'public', 'data', 'audit_reports');
+                    const snapshot = await getDocs(reportsRef);
+                    const cloudReports = snapshot.docs.map(doc => doc.data());
+                    if (cloudReports.length > 0) {
+                        reports = cloudReports.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not fetch cloud history, using local history.", err);
+            }
+
+            if (reports.length === 0) {
+                listContainer.innerHTML = `<p class="text-center py-8 text-slate-400 text-xs italic">No saved daily audit reports found.</p>`;
                 return;
             }
 
-            tableBody.innerHTML = '';
-            nonConformances.forEach((q, idx) => {
-                const item = auditData[q.id];
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-all';
-                tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-500">${idx + 1}</td>
-                    <td class="p-2.5 font-semibold text-slate-800">
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase mr-1">${q.pillar}</span>
-                        ${q.text}
-                    </td>
-                    <td class="p-2.5 text-center">
-                        <span class="px-2 py-0.5 rounded font-extrabold text-white bg-rose-600 text-[11px]">${item.score}</span>
-                    </td>
-                    <td class="p-2.5 text-slate-700">${item.defect || '<span class="text-slate-400 italic">Pending observation...</span>'}</td>
-                    <td class="p-2.5 text-slate-700">${item.action || '<span class="text-slate-400 italic">Pending action...</span>'}</td>
-                    <td class="p-2.5 text-slate-700">
-                        <div><strong>Owner:</strong> ${item.owner || '-'}</div>
-                        <div class="text-[10px] text-slate-500"><strong>Due:</strong> ${item.dueDate || '-'}</div>
-                    </td>
+            listContainer.innerHTML = '';
+            reports.forEach((rep, idx) => {
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4';
+                
+                const capas = rep.auditItems ? rep.auditItems.filter(i => i.score < 3) : [];
+
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${rep.areaName}</span>
+                            <span class="text-xs text-slate-500">${rep.date} (${rep.shift})</span>
+                        </div>
+                        <p class="text-xs text-slate-700"><strong>Auditor:</strong> ${rep.auditor} | <strong>Supervisor:</strong> ${rep.supervisor}</p>
+                        <p class="text-[11px] text-slate-500">${capas.length} CAPA items (${capas.filter(c => c.afterPic).length} resolved with photo)</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <span class="text-2xl font-extrabold ${rep.scorePct >= 80 ? 'text-emerald-600' : 'text-amber-600'}">${rep.scorePct}%</span>
+                        </div>
+                    </div>
                 `;
-                tableBody.appendChild(tr);
+                listContainer.appendChild(card);
             });
         }
 
-        // Setup Event Listeners for Syncing Printable Header
+        function closeAuditHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
         function setupEventListeners() {
             document.getElementById('auditPlant').addEventListener('input', (e) => {
                 document.getElementById('printPlantName').innerText = `Plant: ${e.target.value}`;
