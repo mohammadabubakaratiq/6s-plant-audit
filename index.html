@@ -12,21 +12,29 @@
     body { font-family: 'Inter', sans-serif; }
     .urdu-text { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; direction: rtl; unicode-bidi: embed; }
     
+    /* Scrollbar styling for Area Navigation */
+    #areaNavList::-webkit-scrollbar { width: 5px; }
+    #areaNavList::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    #areaNavList::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    #areaNavList::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
     @media print {
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
       .capa-img-thumb { 
         display: block !important; 
-        width: 140px !important; 
-        height: 120px !important; 
+        width: 110px !important; 
+        height: 110px !important; 
         object-fit: cover !important; 
         border: 1px solid #000 !important;
         visibility: visible !important;
+        margin: 0 auto !important;
       }
       table { width: 100% !important; table-layout: fixed !important; page-break-inside: auto; }
       tr { page-break-inside: avoid; page-break-after: auto; }
-      td, th { word-wrap: break-word !important; white-space: normal !important; }
-      .print-show-all { display: block !important; }
+      td, th { word-wrap: break-word !important; white-space: normal !important; overflow: hidden; }
+      .score-btn-group { display: none !important; }
+      .selected-score-badge { display: inline-block !important; }
     }
   </style>
 </head>
@@ -82,29 +90,29 @@
       <div class="flex items-center justify-between cursor-pointer" onclick="toggleGithubConfig()">
         <div class="flex items-center space-x-2">
           <i class="fa-brands fa-github text-xl text-emerald-400"></i>
-          <h3 class="text-xs font-bold uppercase tracking-wider">GitHub Photo Storage (Connected)</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider">GitHub Photo Storage Configuration</h3>
         </div>
-        <span class="text-xs text-emerald-400 font-bold" id="ghConfigStatus">✅ Token Connected</span>
+        <span class="text-xs text-emerald-400 font-bold" id="ghConfigStatus">✅ Active Config</span>
       </div>
 
       <div id="githubConfigPanel" class="mt-4 pt-3 border-t border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-3 hidden">
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">GitHub Owner</label>
-          <input type="text" id="ghOwner" value="mohammadabubakaratiq" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+          <label class="block text-[11px] text-slate-400 mb-1">GitHub Owner / Username</label>
+          <input type="text" id="ghOwner" value="mohammadabubakaratiq" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
         </div>
         <div>
           <label class="block text-[11px] text-slate-400 mb-1">Repository Name</label>
-          <input type="text" id="ghRepo" value="6s-plant-audit" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+          <input type="text" id="ghRepo" value="6s-plant-audit" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
         </div>
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Folder Path</label>
-          <input type="text" id="ghPath" value="audit-photos" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+          <label class="block text-[11px] text-slate-400 mb-1">Target Folder Path</label>
+          <input type="text" id="ghPath" value="photos" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
         </div>
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Access Token</label>
+          <label class="block text-[11px] text-slate-400 mb-1">Personal Access Token (PAT)</label>
           <div class="flex space-x-1">
-            <input type="password" id="ghToken" value="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" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
-            <button onclick="saveGithubSettings()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 rounded font-bold">Save</button>
+            <input type="password" id="ghToken" placeholder="ghp_xxxx or github_pat_xxxx" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+            <button onclick="saveGithubSettings()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 rounded font-bold transition">Save</button>
           </div>
         </div>
       </div>
@@ -164,14 +172,15 @@
     <!-- MAIN AUDIT LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- LEFT SIDEBAR -->
+      <!-- LEFT SIDEBAR: SELECT AREA (SCROLLABLE LIST FOR ALL 9 AREAS) -->
       <div class="lg:col-span-3 space-y-4 no-print">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
-            <span class="text-blue-600 font-bold" id="areaCountBadge">2 Areas</span>
+            <span class="text-blue-600 font-bold" id="areaCountBadge">9 Areas</span>
           </h3>
-          <div class="space-y-1.5" id="areaNavList"></div>
+          <!-- Max height & scrollable overflow so all 9 areas render cleanly -->
+          <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1" id="areaNavList"></div>
         </div>
 
         <div class="bg-slate-900 text-white rounded-xl p-5 shadow-sm text-center">
@@ -239,7 +248,7 @@
               <th class="p-3 w-1/6 text-center">Before Photo (قبل کی تصویر)</th>
               <th class="p-3 w-2/6">Corrective Action & Owner</th>
               <th class="p-3 w-1/6 text-center">After Photo (بعد کی تصویر)</th>
-              <th class="p-3 w-28 text-center">Status</th>
+              <th class="p-3 w-24 text-center">Status</th>
             </tr>
           </thead>
           <tbody id="capaTableBody"></tbody>
@@ -249,7 +258,7 @@
 
   </main>
 
-  <!-- SAVED AUDITS HISTORY MODAL -->
+  <!-- SAVED AUDITS HISTORY MODAL (WITH DELETE FUNCTION) -->
   <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -285,10 +294,11 @@
     const DEFAULT_GH_CONFIG = {
       owner: "mohammadabubakaratiq",
       repo: "6s-plant-audit",
-      path: "audit-photos",
-      token: "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"
+      path: "photos",
+      token: ""
     };
 
+    // COMPLETE 9 CORRUGATED PACKAGING PLANT AREAS
     const PLANT_AREAS = [
       {
         id: "corrugation",
@@ -313,7 +323,84 @@
           { pillar: "Sort", en: "Are unpasted/pasted scrap pieces and empty glue containers removed?", ur: "کیا پیسٹنگ کا ویسٹ اور گلو کے خالی ڈبے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are glue drums kept in a defined and labelled location?", ur: "کیا گلو ڈرم کو مخصوص اور لیبل شدہ جگہ پر رکھا گیا ہے؟" },
           { pillar: "Shine", en: "Are adhesive spills and dried glue buildup cleaned from floors and tables?", ur: "کیا فرش اور ٹیبلز پر پھیلی ہوئی اور سوکھی ہوئی گلو صاف کر دی گئی ہے؟" },
-          { pillar: "Safety", en: "Are workers prevented from keeping drink bottles/personal items on machines?", ur: "کیا مشین پر پینے کی بوتلیں یا ذاتی سامان رکھنے کی ممانعت پر عمل ہو رہا ہے؟" }
+          { pillar: "Safety", en: "Are workers wearing required PPEs and keeping tools in designated trays?", ur: "کیا ورکرز ضروری سیفٹی سامان اور ٹولز صحیح جگہ رکھ رہے ہیں؟" }
+        ]
+      },
+      {
+        id: "auto_gluer",
+        nameEn: "Auto Folder Gluer",
+        nameUr: "آٹو فولڈر گلوئر",
+        questions: [
+          { pillar: "Sort", en: "Are jam-up defective boxes removed from feed and delivery belts?", ur: "کیا فیڈر اور بیلٹ سے خراب باکسز فوری طور پر ہٹائے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are bundling straps and tape rolls organized on tool racks?", ur: "کیا بنڈلنگ پٹیاں اور ٹیپ رولز ریک پر ترتیب سے موجود ہیں؟" },
+          { pillar: "Shine", en: "Is glue nozzle wheel cleaned free of hardened glue crust?", ur: "کیا گلو نوزل اور ویل جمے ہوئے گلو سے پاک ہیں؟" },
+          { pillar: "Safety", en: "Are emergency stop buttons clear and accessible without obstruction?", ur: "کیا ایمرجنسی اسٹاپ بٹن تک رسائی آسان اور کسی رکاوٹ کے بغیر ہے؟" }
+        ]
+      },
+      {
+        id: "rotary_die_cutter",
+        nameEn: "Rotary Die Cutter",
+        nameUr: "روٹری ڈائی کٹر",
+        questions: [
+          { pillar: "Sort", en: "Are stripped waste cutouts cleared from under the ejection belt?", ur: "کیا ڈائی کٹنگ کے بچے ہوئے ٹکڑے بیلٹ کے نیچے سے صاف کر دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are rotary die boards tagged and stored in die storage racks?", ur: "کیا روٹری ڈائی بورڈز کو لیبل لگا کر مخصوص جگہوں پر رکھا گیا ہے؟" },
+          { pillar: "Shine", en: "Are anvil covers and cylinder surfaces free of dust and ink accumulation?", ur: "کیا اینول کور اور سلنڈر کی سطح گرد اور سیاہی سے صاف ہے؟" },
+          { pillar: "Safety", en: "Is nip-point guard functional during high-speed feeding?", ur: "کیا تیز رفتار فیڈنگ کے دوران نیپ پوائنٹ گارڈ صحیح فعال ہے؟" }
+        ]
+      },
+      {
+        id: "platen_die_punching",
+        nameEn: "Platen Die Punching",
+        nameUr: "ڈائی پنچنگ سیکشن",
+        questions: [
+          { pillar: "Sort", en: "Are damaged plywood dies and broken ejection rubbers discarded?", ur: "کیا ٹوٹی ہوئی یا خراب ڈائی اور ربر ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are make-ready sheets and chase keys kept in designated lockers?", ur: "کیا ایڈجسٹمنٹ ٹولز اور دیگر سامان لاکرز میں مرتب رکھے گئے ہیں؟" },
+          { pillar: "Shine", en: "Is machine bed free of grease buildup and paper dust?", ur: "کیا مشین کا بیڈ گریس اور کاغذ کے برادے سے صاف رکھا گیا ہے؟" },
+          { pillar: "Safety", en: "Is platen safety barrier switch functioning correctly on hand load?", ur: "کیا ہاتھ سے فیڈنگ کرتے وقت سیفٹی بیریئر سوئچ صحیح کام کر رہا ہے؟" }
+        ]
+      },
+      {
+        id: "printing_section",
+        nameEn: "Flexo Printing Section",
+        nameUr: "فلیکسو پرنٹنگ سیکشن",
+        questions: [
+          { pillar: "Sort", en: "Are expired ink buckets and dirty washing rags disposed of?", ur: "کیا پرانی روشنائی کے بالٹی اور گندے کپڑے ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are printing plates/stereos cleaned, hung, and indexed correctly?", ur: "کیا پرنٹنگ پلیٹس کو صاف کر کے صحیح انڈیکس کے ساتھ لٹکایا گیا ہے؟" },
+          { pillar: "Shine", en: "Are flexo ink pumps and doctor blade chambers washed post-run?", ur: "کیا پرنٹنگ کے بعد انک پمپ اور چیمبرز کو اچھے سے دھویا گیا ہے؟" },
+          { pillar: "Safety", en: "Are chemical ink wash fluids stored in anti-spill trays?", ur: "کیا کیمیکل اور انک واش کی بوتلیں ڈریپ ٹرے میں رکھی گئی ہیں؟" }
+        ]
+      },
+      {
+        id: "paper_reel_warehouse",
+        nameEn: "Paper Reel Warehouse",
+        nameUr: "پیپر ریل گودام",
+        questions: [
+          { pillar: "Sort", en: "Are damaged outer paper roll wraps stripped and sent to repulping?", ur: "کیا پیپر ریلز کے خراب بیرونی کورز ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are paper reels stacked according to GSM and paper type markings?", ur: "کیا ریلز کو ان کے GSM اور قسم کے لحاظ سے الگ نشان زد جگہ رکھا گیا ہے؟" },
+          { pillar: "Shine", en: "Are warehouse gangways clear of loose paper cores and trash?", ur: "کیا گودام کے راستے پیپر کور اور کچرے سے صاف ہیں؟" },
+          { pillar: "Safety", en: "Are reel chocks installed to prevent roll movements or collapse?", ur: "کیا ریلز کو لڑھکنے سے روکنے کے لیے چاکس (Chocks) لگائے گئے ہیں؟" }
+        ]
+      },
+      {
+        id: "finished_goods_store",
+        nameEn: "Finished Goods Store",
+        nameUr: "تیار شدہ مال گودام",
+        questions: [
+          { pillar: "Sort", en: "Are rejected bundles and unstenciled pallets separated from dispatch stock?", ur: "کیا ر مسترد شدہ باکسز اور غیر لیبل شدہ پیلیٹس ڈسپیچ اسٹاک سے الگ ہیں؟" },
+          { pillar: "Set in Order", en: "Are pallet loads arranged inside floor grid lines with customer job tags?", ur: "کیا تمام پیلیٹس فلور گرڈ کے اندر کسٹمر ٹیگ کے ساتھ مرتب ہیں؟" },
+          { pillar: "Shine", en: "Are warehouse aisles clean and free of broken wooden pallet splinters?", ur: "کیا گودام کی راہداریاں لکڑی کے ٹکڑوں اور مٹی سے پاک ہیں؟" },
+          { pillar: "Safety", en: "Are stack heights maintained within safe limit markers?", ur: "کیا اسٹیکنگ کی اونچائی محفوظ حد کے اندر رکھی گئی ہے؟" }
+        ]
+      },
+      {
+        id: "maintenance_workshop",
+        nameEn: "Maintenance & Workshop",
+        nameUr: "مینٹیننس اور ورکشاپ",
+        questions: [
+          { pillar: "Sort", en: "Are worn bearings, scrap metal bits, and replaced spare parts removed?", ur: "کیا پرانے بیئرنگ، بیکار لوہا اور بدلے گئے پارٹس ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are wrenches, spanners, and power tools arranged on shadow boards?", ur: "کیا تمام ٹولز اور چابیاں شیڈو بورڈ پر جگہ پر لٹکائی گئی ہیں؟" },
+          { pillar: "Shine", en: "Are oil drips clean and drip pans placed under hydraulic test rigs?", ur: "کیا اوائل کے قطرے صاف کیے گئے ہیں اور ڈرپ پین رکھے گئے ہیں؟" },
+          { pillar: "Safety", en: "Are gas cylinder bottles secured upright with safety chains?", ur: "کیا گیس سلنڈرز کو زنجیر کے ساتھ سیدھا کھڑا کر کے محفوظ کیا گیا ہے؟" }
         ]
       }
     ];
@@ -347,7 +434,8 @@
         token: document.getElementById('ghToken').value.trim()
       };
       localStorage.setItem('6s_gh_config', JSON.stringify(config));
-      alert("GitHub settings saved!");
+      document.getElementById('ghConfigStatus').innerText = "✅ Saved";
+      alert("✅ GitHub credentials saved to local storage!");
     }
 
     function loadGithubSettings() {
@@ -364,7 +452,7 @@
         owner: document.getElementById('ghOwner').value.trim() || DEFAULT_GH_CONFIG.owner,
         repo: document.getElementById('ghRepo').value.trim() || DEFAULT_GH_CONFIG.repo,
         path: document.getElementById('ghPath').value.trim() || DEFAULT_GH_CONFIG.path,
-        token: document.getElementById('ghToken').value.trim() || DEFAULT_GH_CONFIG.token
+        token: document.getElementById('ghToken').value.trim()
       };
     }
 
@@ -374,7 +462,8 @@
 
       const { owner, repo, path, token } = getGithubConfig();
       if (!token || !owner || !repo) {
-        alert("Missing GitHub Token or Repo Name!");
+        alert("⚠️ Personal Access Token (PAT) is required! Please enter your GitHub token in the GitHub Storage Panel.");
+        toggleGithubConfig();
         return;
       }
 
@@ -400,11 +489,18 @@
             })
           });
 
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          if (response.status === 401) {
+            throw new Error("GitHub Upload Failed (401 Bad Credentials). Please re-enter a valid GitHub token with 'repo' write access.");
+          }
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.message || `HTTP ${response.status}`);
+          }
 
           const rawImageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
           
-          // Pre-load image into browser cache so it shows in print
+          // Pre-cache image so it displays properly in print preview
           const imgCache = new Image();
           imgCache.src = rawImageUrl;
 
@@ -413,7 +509,7 @@
           renderCapaTable();
 
         } catch (err) {
-          alert("Upload failed: " + err.message);
+          alert("❌ " + err.message);
           renderCapaTable();
         }
       };
@@ -441,6 +537,8 @@
     function renderAreaNav() {
       const container = document.getElementById('areaNavList');
       container.innerHTML = '';
+      document.getElementById('areaCountBadge').innerText = `${PLANT_AREAS.length} Areas`;
+
       PLANT_AREAS.forEach((area, index) => {
         const isSelected = index === currentAreaIndex;
         const btn = document.createElement('button');
@@ -454,7 +552,7 @@
             <div class="font-bold truncate">${area.nameEn}</div>
             <div class="text-[10px] opacity-80 urdu-text leading-tight truncate">${area.nameUr}</div>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}" id="nav-score-${area.id}">100%</span>
+          <span class="text-[10px] px-2 py-0.5 rounded shrink-0 ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}" id="nav-score-${area.id}">100%</span>
         `;
         container.appendChild(btn);
       });
@@ -494,7 +592,7 @@
               <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700">${q.pillar}</span>
               ${textContent}
             </div>
-            <div class="flex items-center space-x-1 shrink-0">
+            <div class="flex items-center space-x-1 shrink-0 score-btn-group">
               ${[1,2,3,4,5].map(scoreVal => `
                 <button onclick="setScore('${key}', ${scoreVal})" class="w-7 h-7 rounded-lg text-xs font-bold transition ${
                   currentScore === scoreVal 
@@ -503,6 +601,7 @@
                 }">${scoreVal}</button>
               `).join('')}
             </div>
+            <span class="hidden selected-score-badge text-xs font-bold bg-slate-200 px-2 py-1 rounded">Score: ${currentScore}/5</span>
           </div>
         `;
         container.appendChild(card);
@@ -603,36 +702,36 @@
               <td class="p-3 align-top text-center">
                 <div class="space-y-1.5 flex flex-col items-center">
                   ${item.beforeImg ? `
-                    <img src="${item.beforeImg}" onclick="openImageModal('${item.beforeImg}')" class="w-28 h-28 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
+                    <img src="${item.beforeImg}" onclick="openImageModal('${item.beforeImg}')" class="w-24 h-24 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
                     <button onclick="removePhoto('${key}', 'beforeImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
-                    <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center block w-28 h-28 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
-                      <i class="fa-brands fa-github text-xl mb-1 text-emerald-600"></i> Upload Photo
+                    <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-2 text-center block w-24 h-24 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
+                      <i class="fa-brands fa-github text-lg mb-1 text-emerald-600"></i> Upload Photo
                       <input type="file" accept="image/*" class="hidden" onchange="uploadPhotoToGithub(event, '${key}', 'beforeImg')">
                     </label>
                   `}
                 </div>
               </td>
               <td class="p-3 space-y-2 align-top break-words">
-                <input type="text" placeholder="Corrective action planned/taken..." value="${item.action}" onchange="updateCapaText('${key}', 'action', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
-                <input type="text" placeholder="Responsible Owner..." value="${item.owner}" onchange="updateCapaText('${key}', 'owner', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
+                <input type="text" placeholder="Corrective action planned..." value="${item.action || ''}" onchange="updateCapaText('${key}', 'action', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none bg-slate-50/50">
+                <input type="text" placeholder="Responsible Owner..." value="${item.owner || ''}" onchange="updateCapaText('${key}', 'owner', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none bg-slate-50/50">
               </td>
               <td class="p-3 align-top text-center">
                 <div class="space-y-1.5 flex flex-col items-center">
                   ${item.afterImg ? `
-                    <img src="${item.afterImg}" onclick="openImageModal('${item.afterImg}')" class="w-28 h-28 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
+                    <img src="${item.afterImg}" onclick="openImageModal('${item.afterImg}')" class="w-24 h-24 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
                     <button onclick="removePhoto('${key}', 'afterImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
-                    <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center block w-28 h-28 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
-                      <i class="fa-brands fa-github text-xl mb-1 text-emerald-600"></i> Upload Photo
+                    <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-2 text-center block w-24 h-24 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
+                      <i class="fa-brands fa-github text-lg mb-1 text-emerald-600"></i> Upload Photo
                       <input type="file" accept="image/*" class="hidden" onchange="uploadPhotoToGithub(event, '${key}', 'afterImg')">
                     </label>
                   `}
                 </div>
               </td>
               <td class="p-3 text-center align-top">
-                <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${isResolved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                  ${isResolved ? 'Resolved' : 'Pending Action'}
+                <span class="inline-block px-2 py-1 rounded-full text-[10px] font-bold ${isResolved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                  ${isResolved ? 'Resolved' : 'Pending'}
                 </span>
               </td>
             `;
@@ -716,7 +815,7 @@
       };
       savedAudits.unshift(report);
       localStorage.setItem('6s_audit_history', JSON.stringify(savedAudits));
-      alert("✅ Audit Report Saved!");
+      alert("✅ Daily Audit Report saved to local storage!");
     }
 
     function exportCurrentAuditJSON() {
@@ -758,9 +857,9 @@
           renderQuestions();
           updateScores();
           closeHistoryModal();
-          alert("📂 Report imported!");
+          alert("📂 Audit Report file imported successfully!");
         } catch (err) {
-          alert("❌ Invalid JSON file.");
+          alert("❌ Invalid JSON file format.");
         }
       };
       reader.readAsText(file);
@@ -774,21 +873,32 @@
       } else {
         savedAudits.forEach((audit, index) => {
           const card = document.createElement('div');
-          card.className = "p-3.5 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between";
+          card.className = "p-3 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between gap-2";
           card.innerHTML = `
             <div>
               <div class="font-bold text-xs text-slate-800">${audit.date} (${audit.shift})</div>
               <div class="text-[11px] text-slate-500">Auditor: ${audit.auditor} | Supervisor: ${audit.supervisor}</div>
-              <div class="text-[10px] text-blue-600 font-bold mt-1">Overall Score: ${audit.overallPct}</div>
+              <div class="text-[10px] text-blue-600 font-bold mt-0.5">Overall Score: ${audit.overallPct}</div>
             </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="loadAuditFromHistory(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Open</button>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="loadAuditFromHistory(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">Open</button>
+              <button onclick="deleteSavedAudit(${index})" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition" title="Delete Report">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
             </div>
           `;
           container.appendChild(card);
         });
       }
       document.getElementById('historyModal').classList.remove('hidden');
+    }
+
+    function deleteSavedAudit(index) {
+      if (confirm("Are you sure you want to delete this saved audit report?")) {
+        savedAudits.splice(index, 1);
+        localStorage.setItem('6s_audit_history', JSON.stringify(savedAudits));
+        openHistoryModal();
+      }
     }
 
     function closeHistoryModal() {
