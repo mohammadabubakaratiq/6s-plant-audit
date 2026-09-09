@@ -39,7 +39,6 @@
 
       <!-- Control Buttons & Language Selector -->
       <div class="flex items-center space-x-3">
-        <!-- Bilingual Language Switcher -->
         <div class="bg-slate-800 border border-slate-700 rounded-lg p-1 flex text-xs font-semibold">
           <button onclick="setLanguage('en')" id="lang-btn-en" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">ENG</button>
           <button onclick="setLanguage('ur')" id="lang-btn-ur" class="px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white">اردو</button>
@@ -105,19 +104,16 @@
     <!-- MAIN AUDIT LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- LEFT SIDEBAR: 9 PLANT AREAS -->
+      <!-- LEFT SIDEBAR -->
       <div class="lg:col-span-3 space-y-4 no-print">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
             <span class="text-blue-600 font-bold">9 Areas</span>
           </h3>
-          <div class="space-y-1.5" id="areaNavList">
-            <!-- Dynamic Plant Area Navigation -->
-          </div>
+          <div class="space-y-1.5" id="areaNavList"></div>
         </div>
 
-        <!-- OVERALL AUDIT SCORE CARD -->
         <div class="bg-slate-900 text-white rounded-xl p-5 shadow-sm text-center">
           <div class="text-xs uppercase font-bold text-slate-400 mb-1">Plant Overall 6S Rating</div>
           <div class="text-4xl font-extrabold text-emerald-400" id="overallScoreDisplay">100%</div>
@@ -138,10 +134,7 @@
             </div>
           </div>
 
-          <!-- 6S Questions Container -->
-          <div class="space-y-5" id="questionsContainer">
-            <!-- Questions dynamically generated -->
-          </div>
+          <div class="space-y-5" id="questionsContainer"></div>
         </div>
       </div>
 
@@ -161,11 +154,20 @@
           </div>
           <p class="text-xs text-slate-500">Scoring &lt; 3 points generates automatic Corrective Action requirements with Before/After photos below.</p>
         </div>
+
+        <!-- AI CAPA GENERATOR BUTTON (Correctly Placed Inside Sidebar) -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <button id="aiAnalyzeBtn" onclick="generateAiCAPA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Generate AI CAPA Plan</span>
+          </button>
+          <div id="aiResponseOutput" class="mt-3 text-xs text-slate-700 hidden p-3 bg-purple-50 rounded-lg border border-purple-200 max-h-60 overflow-y-auto"></div>
+        </div>
       </div>
 
     </div>
 
-    <!-- CAPA & BEFORE/AFTER PHOTO PROOF TABLE -->
+    <!-- CAPA TABLE -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
         <div>
@@ -189,9 +191,7 @@
               <th class="p-3 text-center">Status</th>
             </tr>
           </thead>
-          <tbody id="capaTableBody">
-            <!-- Dynamic CAPA Rows -->
-          </tbody>
+          <tbody id="capaTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -209,9 +209,7 @@
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
       </div>
 
-      <div id="historyListContainer" class="max-h-96 overflow-y-auto space-y-3 p-1">
-        <!-- Rendered Saved Audits -->
-      </div>
+      <div id="historyListContainer" class="max-h-96 overflow-y-auto space-y-3 p-1"></div>
 
       <div class="flex justify-end pt-2 border-t">
         <button onclick="closeHistoryModal()" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg font-semibold">Close</button>
@@ -221,7 +219,6 @@
 
   <!-- COMPLETE LOGIC ENGINE -->
   <script>
-    // DATA MATRIX FOR ALL 9 PLANT AREAS & QUESTIONS
     const PLANT_AREAS = [
       {
         id: "corrugation",
@@ -344,15 +341,13 @@
       }
     ];
 
-    // STATE VARIABLES
     let currentAreaIndex = 0;
-    let currentLang = 'dual'; // 'en', 'ur', 'dual'
+    let currentLang = 'dual';
     let auditScores = {};
     let capaData = {};
     let savedAudits = JSON.parse(localStorage.getItem('6s_audit_history') || '[]');
     let radarChartInstance = null;
 
-    // INITIALIZATION
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById('auditDate').valueAsDate = new Date();
       initializeDefaultScores();
@@ -367,28 +362,22 @@
         area.questions.forEach((q, idx) => {
           const key = `${area.id}_${idx}`;
           if (auditScores[key] === undefined) {
-            auditScores[key] = 5; // Default score 5 (Pass)
+            auditScores[key] = 5;
           }
         });
       });
     }
 
-    // LANGUAGE SWITCHER
     function setLanguage(lang) {
       currentLang = lang;
       ['en', 'ur', 'dual'].forEach(l => {
         const btn = document.getElementById(`lang-btn-${l}`);
-        if (l === lang) {
-          btn.className = "px-3 py-1.5 rounded-md transition-all bg-blue-600 text-white font-bold";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
-        }
+        btn.className = l === lang ? "px-3 py-1.5 rounded-md transition-all bg-blue-600 text-white font-bold" : "px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white";
       });
       renderQuestions();
       renderCapaTable();
     }
 
-    // RENDER AREA NAVIGATION
     function renderAreaNav() {
       const container = document.getElementById('areaNavList');
       container.innerHTML = '';
@@ -397,9 +386,7 @@
         const btn = document.createElement('button');
         btn.onclick = () => selectArea(index);
         btn.className = `w-full text-left px-3 py-2.5 rounded-lg border text-xs font-semibold transition flex items-center justify-between ${
-          isSelected 
-            ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
-            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+          isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
         }`;
         
         btn.innerHTML = `
@@ -420,7 +407,6 @@
       updateScores();
     }
 
-    // RENDER QUESTIONS
     function renderQuestions() {
       const area = PLANT_AREAS[currentAreaIndex];
       document.getElementById('currentAreaTitle').innerText = area.nameEn;
@@ -436,17 +422,11 @@
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3";
 
-        let textContent = '';
-        if (currentLang === 'en') {
-          textContent = `<p class="text-xs font-semibold text-slate-800">${q.en}</p>`;
-        } else if (currentLang === 'ur') {
-          textContent = `<p class="text-xs font-bold text-slate-800 urdu-text">${q.ur}</p>`;
-        } else {
-          textContent = `
-            <p class="text-xs font-semibold text-slate-800">${q.en}</p>
-            <p class="text-xs text-slate-600 urdu-text mt-0.5">${q.ur}</p>
-          `;
-        }
+        let textContent = currentLang === 'en' 
+          ? `<p class="text-xs font-semibold text-slate-800">${q.en}</p>`
+          : currentLang === 'ur'
+          ? `<p class="text-xs font-bold text-slate-800 urdu-text">${q.ur}</p>`
+          : `<p class="text-xs font-semibold text-slate-800">${q.en}</p><p class="text-xs text-slate-600 urdu-text mt-0.5">${q.ur}</p>`;
 
         card.innerHTML = `
           <div class="flex items-start justify-between gap-3">
@@ -475,7 +455,6 @@
       updateScores();
     }
 
-    // SCORE & CHART UPDATES
     function updateScores() {
       let totalEarned = 0;
       let totalPossible = 0;
@@ -518,7 +497,6 @@
       renderCapaTable();
     }
 
-    // CAPA TABLE GENERATION
     function renderCapaTable() {
       const tbody = document.getElementById('capaTableBody');
       tbody.innerHTML = '';
@@ -630,7 +608,6 @@
       }
     }
 
-    // CHART.JS RADAR CHART LOGIC
     function initRadarChart() {
       const ctx = document.getElementById('radarChart').getContext('2d');
       radarChartInstance = new Chart(ctx, {
@@ -669,7 +646,6 @@
       radarChartInstance.update();
     }
 
-    // LOCAL STORAGE MANAGEMENT
     function saveCurrentAudit() {
       const report = {
         id: Date.now(),
@@ -750,6 +726,48 @@
         savedAudits.splice(index, 1);
         localStorage.setItem('6s_audit_history', JSON.stringify(savedAudits));
         openHistoryModal();
+      }
+    }
+
+    // AI CAPA GENERATION FUNCTION (Correctly Placed Inside Script)
+    async function generateAiCAPA() {
+      const outputDiv = document.getElementById('aiResponseOutput');
+      outputDiv.classList.remove('hidden');
+      outputDiv.innerHTML = '<i>AI is analyzing low-scoring audit items...</i>';
+
+      let lowScores = [];
+      PLANT_AREAS.forEach(area => {
+        area.questions.forEach((q, idx) => {
+          const score = auditScores[`${area.id}_${idx}`];
+          if (score < 3) {
+            lowScores.push({ area: area.nameEn, pillar: q.pillar, issue: q.en });
+          }
+        });
+      });
+
+      if (lowScores.length === 0) {
+        outputDiv.innerHTML = '✨ Everything looks good! No low-scoring items (< 3) found for AI analysis.';
+        return;
+      }
+
+      const promptText = `Analyze these 6S Plant Audit failures and recommend immediate, low-cost Corrective Actions (CAPA) for each:
+${JSON.stringify(lowScores, null, 2)}`;
+
+      const API_KEY = "YOUR_GEMINI_API_KEY"; // Replace with your actual Gemini API Key
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await response.json();
+        const resultText = data.candidates[0].content.parts[0].text;
+        outputDiv.innerHTML = `<strong>AI Corrective Action Plan:</strong><br><div class="mt-2 whitespace-pre-wrap">${resultText}</div>`;
+      } catch (error) {
+        outputDiv.innerHTML = `<span class="text-red-600">Failed to generate AI response. Please check API Key or connectivity.</span>`;
       }
     }
   </script>
