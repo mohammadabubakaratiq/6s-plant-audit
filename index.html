@@ -176,7 +176,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
-            <span class="text-blue-600 font-bold" id="areaCountBadge">9 Areas</span>
+            <span class="text-blue-600 font-bold" id="areaCountBadge">8 Areas</span>
           </h3>
           <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1" id="areaNavList"></div>
         </div>
@@ -193,8 +193,8 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-5">
             <div>
-              <h2 class="text-xl font-bold text-slate-900" id="currentAreaTitle">Plant Machine (Corrugation)</h2>
-              <p class="text-xs text-slate-500 mt-0.5" id="currentAreaUrduTitle">کوروگیشن پلانٹ - 6S جائزہ</p>
+              <h2 class="text-xl font-bold text-slate-900" id="currentAreaTitle">Plant (Corrugation) Area</h2>
+              <p class="text-xs text-slate-500 mt-0.5" id="currentAreaUrduTitle">کوروگیشن پلانٹ ایریا</p>
             </div>
             <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold" id="areaScoreTag">
               Area Score: 100%
@@ -208,7 +208,7 @@
       <!-- RIGHT SIDEBAR: RADAR CHART -->
       <div class="lg:col-span-3 space-y-6">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">6S Pillar Performance</h3>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">6S Pillar Performance</h3>
           <div class="w-full h-56">
             <canvas id="radarChart"></canvas>
           </div>
@@ -299,8 +299,8 @@
     const PLANT_AREAS = [
       {
         id: "corrugation",
-        nameEn: "Plant Machine (Corrugation)",
-        nameUr: "کوروگیشن پلانٹ",
+        nameEn: "Plant (Corrugation) Area",
+        nameUr: "کوروگیشن پلانٹ ایریا",
         questions: [
           { pillar: "Sort", en: "Are unnecessary paper scraps, damaged sheets, and unused materials removed?", ur: "کیا فالتو کاغذ کے بچے ہوئے ٹکڑے، خراب شیٹس اور غیر ضروری سامان ہٹا دیا گیا ہے؟" },
           { pillar: "Sort", en: "Is accumulated trim waste from the slitter scorer removed before piling up?", ur: "کیا سلیٹر اسکورر کا کٹا ہوا ویسٹ جمع ہونے سے پہلے صاف کیا جا رہا ہے؟" },
@@ -313,91 +313,80 @@
         ]
       },
       {
+        id: "manual_die_cut",
+        nameEn: "Manual Die Cut Area",
+        nameUr: "مینوئل ڈائی کٹ ایریا",
+        questions: [
+          { pillar: "Sort", en: "Are damaged wooden/plywood dies and worn ejection rubbers discarded?", ur: "کیا خراب یا ٹوٹی ہوئی لکڑی کی ڈائی اور ربر ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are active cutting dies tagged, cataloged, and stored in die racks?", ur: "کیا استعمال ہونے والی ڈائیز کو ٹیگ لگا کر اور ریک میں ترتیب سے رکھا گیا ہے؟" },
+          { pillar: "Shine", en: "Is machine bed free of grease buildup, paper dust, and scrap cutouts?", ur: "کیا مشین بیڈ، گریس اور کاغذ کے برادے سے مکمل صاف ہے؟" },
+          { pillar: "Safety", en: "Is platen safety barrier switch functioning correctly on manual feeding?", ur: "کیا ہاتھ سے فیڈنگ کے دوران سیفٹی سوئچ اور بیریئر صحیح کام کر رہا ہے؟" }
+        ]
+      },
+      {
         id: "manual_pasting",
         nameEn: "Manual Pasting Area",
         nameUr: "مینوئل پیسٹنگ ایریا",
         questions: [
-          { pillar: "Sort", en: "Are unpasted/pasted scrap pieces and empty glue containers removed?", ur: "کیا پیسٹنگ کا ویسٹ اور گلو کے خالی ڈبے ہٹا دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are glue drums kept in a defined and labelled location?", ur: "کیا گلو ڈرم کو مخصوص اور لیبل شدہ جگہ پر رکھا گیا ہے؟" },
+          { pillar: "Sort", en: "Are unpasted/pasted scrap pieces and empty adhesive containers removed?", ur: "کیا پیسٹنگ کا ویسٹ اور گلو کے خالی ڈبے ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are glue drums and applicators kept in a defined and labelled location?", ur: "کیا گلو ڈرم کو مخصوص اور لیبل شدہ جگہ پر رکھا گیا ہے؟" },
           { pillar: "Shine", en: "Are adhesive spills and dried glue buildup cleaned from floors and tables?", ur: "کیا فرش اور ٹیبلز پر پھیلی ہوئی اور سوکھی ہوئی گلو صاف کر دی گئی ہے؟" },
-          { pillar: "Safety", en: "Are workers wearing required PPEs and keeping tools in designated trays?", ur: "کیا ورکرز ضروری سیفٹی سامان اور ٹولز صحیح جگہ رکھ رہے ہیں؟" }
+          { pillar: "Safety", en: "Are workers wearing required PPEs and keeping wiper rags in safe trays?", ur: "کیا ورکرز ضروری سیفٹی سامان استعمال کر رہے ہیں اور ٹولز صحیح جگہ ہیں؟" }
         ]
       },
       {
-        id: "auto_gluer",
-        nameEn: "Auto Folder Gluer",
-        nameUr: "آٹو فولڈر گلوئر",
+        id: "manual_rotary",
+        nameEn: "Manual Rotary Area",
+        nameUr: "مینوئل روٹری ایریا",
         questions: [
-          { pillar: "Sort", en: "Are jam-up defective boxes removed from feed and delivery belts?", ur: "کیا فیڈر اور بیلٹ سے خراب باکسز فوری طور پر ہٹائے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are bundling straps and tape rolls organized on tool racks?", ur: "کیا بنڈلنگ پٹیاں اور ٹیپ رولز ریک پر ترتیب سے موجود ہیں؟" },
-          { pillar: "Shine", en: "Is glue nozzle wheel cleaned free of hardened glue crust?", ur: "کیا گلو نوزل اور ویل جمے ہوئے گلو سے پاک ہیں؟" },
-          { pillar: "Safety", en: "Are emergency stop buttons clear and accessible without obstruction?", ur: "کیا ایمرجنسی اسٹاپ بٹن تک رسائی آسان اور کسی رکاوٹ کے بغیر ہے؟" }
+          { pillar: "Sort", en: "Are stripped waste cutouts cleared from feeding and exit zones?", ur: "کیا روٹری کے نچلے حصے اور راستے سے کٹا ہوا ویسٹ ہٹا دیا گیا ہے؟" },
+          { pillar: "Set in Order", en: "Are manual rotary slotting tools and wrenches organized on tool boards?", ur: "کیا سیٹنگ والے ٹولز اور چابیاں مخصوص بورڈ پر ترتیب سے رکھی گئی ہیں؟" },
+          { pillar: "Shine", en: "Are rotary shafts and creasing wheels free of dust and debris buildup?", ur: "کیا روٹری کے شافٹ اور کریزنگ ویلز گرد و غبار سے صاف ہیں؟" },
+          { pillar: "Safety", en: "Are rotating shaft guards and emergency stop buttons functional?", ur: "کیا گھومنے والے شافٹ کے گارڈز اور ایمرجنسی اسٹاپ بٹن فعال ہیں؟" }
         ]
       },
       {
-        id: "rotary_die_cutter",
-        nameEn: "Rotary Die Cutter",
-        nameUr: "روٹری ڈائی کٹر",
+        id: "flexo_4col_old",
+        nameEn: "Flexo 4 Color Machine (Old)",
+        nameUr: "فلیکسو 4 کلر مشین (پرانی)",
         questions: [
-          { pillar: "Sort", en: "Are stripped waste cutouts cleared from under the ejection belt?", ur: "کیا ڈائی کٹنگ کے بچے ہوئے ٹکڑے بیلٹ کے نیچے سے صاف کر دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are rotary die boards tagged and stored in die storage racks?", ur: "کیا روٹری ڈائی بورڈز کو لیبل لگا کر مخصوص جگہوں پر رکھا گیا ہے؟" },
-          { pillar: "Shine", en: "Are anvil covers and cylinder surfaces free of dust and ink accumulation?", ur: "کیا اینول کور اور سلنڈر کی سطح گرد اور سیاہی سے صاف ہے؟" },
-          { pillar: "Safety", en: "Is nip-point guard functional during high-speed feeding?", ur: "کیا تیز رفتار فیڈنگ کے دوران نیپ پوائنٹ گارڈ صحیح فعال ہے؟" }
+          { pillar: "Sort", en: "Are expired ink buckets, empty drums, and dirty washing rags removed?", ur: "کیا پرانی روشنائی کے بالٹی اور گندے کپڑے ہٹا دیے گئے ہیں؟" },
+          { pillar: "Set in Order", en: "Are printing stereos/plates cleaned, hung, and indexed correctly?", ur: "کیا پرنٹنگ پلیٹس کو صاف کر کے صحیح انڈیکس کے ساتھ لٹکایا گیا ہے؟" },
+          { pillar: "Shine", en: "Are ink pumps, rollers, and tray channels washed post-run?", ur: "کیا پرنٹنگ کے بعد انک پمپ اور رولرز کو اچھے سے دھویا گیا ہے؟" },
+          { pillar: "Safety", en: "Are chemical ink wash fluids stored in anti-spill safety trays?", ur: "کیا کیمیکل اور انک واش کی بوتلیں ڈریپ ٹرے میں رکھی گئی ہیں؟" }
         ]
       },
       {
-        id: "platen_die_punching",
-        nameEn: "Platen Die Punching",
-        nameUr: "ڈائی پنچنگ سیکشن",
+        id: "flexo_4col_new",
+        nameEn: "Flexo 4 Color Machine (New)",
+        nameUr: "فلیکسو 4 کلر مشین (نئی)",
         questions: [
-          { pillar: "Sort", en: "Are damaged plywood dies and broken ejection rubbers discarded?", ur: "کیا ٹوٹی ہوئی یا خراب ڈائی اور ربر ہٹا دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are make-ready sheets and chase keys kept in designated lockers?", ur: "کیا ایڈجسٹمنٹ ٹولز اور دیگر سامان لاکرز میں مرتب رکھے گئے ہیں؟" },
-          { pillar: "Shine", en: "Is machine bed free of grease buildup and paper dust?", ur: "کیا مشین کا بیڈ گریس اور کاغذ کے برادے سے صاف رکھا گیا ہے؟" },
-          { pillar: "Safety", en: "Is platen safety barrier switch functioning correctly on hand load?", ur: "کیا ہاتھ سے فیڈنگ کرتے وقت سیفٹی بیریئر سوئچ صحیح کام کر رہا ہے؟" }
+          { pillar: "Sort", en: "Are set-up trim waste and unused printing ink buckets kept cleared?", ur: "کیا ٹیسٹ پرنٹنگ کا ویسٹ اور بقیہ انک بالٹی ہٹا دی گئی ہیں؟" },
+          { pillar: "Set in Order", en: "Are touch control panels, stereos, and doctor blades properly arranged?", ur: "کیا پلیٹس، ڈاکٹر بلیڈز اور کنٹرول پینلز کی جگہیں متعین اور صاف ہیں؟" },
+          { pillar: "Shine", en: "Are automated washup units and chamber doctor blades maintained daily?", ur: "کیا واش اپ سسٹم اور چیمبر بلیڈز روزانہ صاف کیے جا رہے ہیں؟" },
+          { pillar: "Safety", en: "Are safety interlocks and light curtains active on motor units?", ur: "کیا موٹر یونٹس کے سیفٹی انٹرلاک سینسرز صحیح کام کر رہے ہیں؟" }
         ]
       },
       {
-        id: "printing_section",
-        nameEn: "Flexo Printing Section",
-        nameUr: "فلیکسو پرنٹنگ سیکشن",
+        id: "flexo_2col_old",
+        nameEn: "Flexo 2 Color Machine (Old)",
+        nameUr: "فلیکسو 2 کلر مشین (پرانی)",
         questions: [
-          { pillar: "Sort", en: "Are expired ink buckets and dirty washing rags disposed of?", ur: "کیا پرانی روشنائی کے بالٹی اور گندے کپڑے ہٹا دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are printing plates/stereos cleaned, hung, and indexed correctly?", ur: "کیا پرنٹنگ پلیٹس کو صاف کر کے صحیح انڈیکس کے ساتھ لٹکایا گیا ہے؟" },
-          { pillar: "Shine", en: "Are flexo ink pumps and doctor blade chambers washed post-run?", ur: "کیا پرنٹنگ کے بعد انک پمپ اور چیمبرز کو اچھے سے دھویا گیا ہے؟" },
-          { pillar: "Safety", en: "Are chemical ink wash fluids stored in anti-spill trays?", ur: "کیا کیمیکل اور انک واش کی بوتلیں ڈریپ ٹرے میں رکھی گئی ہیں؟" }
+          { pillar: "Sort", en: "Are damaged stereos, waste paper, and empty ink buckets removed?", ur: "کیا خراب سٹیرویو، فضول کاغذ اور خالی بالٹیوں کو ہٹا دیا گیا ہے؟" },
+          { pillar: "Set in Order", en: "Are 2-color ink pails and manual tools positioned in assigned slots?", ur: "کیا 2 کلر انک بالٹی اور مینول ٹولز جگہ پر رکھے گئے ہیں؟" },
+          { pillar: "Shine", en: "Are ink fountains, fountain rollers, and surrounding floor area clean?", ur: "کیا انک فاؤنٹین، رولرز اور ارد گرد کا فرش صاف ستھرا ہے؟" },
+          { pillar: "Safety", en: "Are open gear covers secured properly before running operations?", ur: "کیا مشین چلانے سے پہلے گیئر کورز کو مکمل بند رکھا گیا ہے؟" }
         ]
       },
       {
-        id: "paper_reel_warehouse",
-        nameEn: "Paper Reel Warehouse",
-        nameUr: "پیپر ریل گودام",
+        id: "flexo_2col_new",
+        nameEn: "Flexo 2 Color Machine (New)",
+        nameUr: "فلیکسو 2 کلر مشین (نئی)",
         questions: [
-          { pillar: "Sort", en: "Are damaged outer paper roll wraps stripped and sent to repulping?", ur: "کیا پیپر ریلز کے خراب بیرونی کورز ہٹا دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are paper reels stacked according to GSM and paper type markings?", ur: "کیا ریلز کو ان کے GSM اور قسم کے لحاظ سے الگ نشان زد جگہ رکھا گیا ہے؟" },
-          { pillar: "Shine", en: "Are warehouse gangways clear of loose paper cores and trash?", ur: "کیا گودام کے راستے پیپر کور اور کچرے سے صاف ہیں؟" },
-          { pillar: "Safety", en: "Are reel chocks installed to prevent roll movements or collapse?", ur: "کیا ریلز کو لڑھکنے سے روکنے کے لیے چاکس (Chocks) لگائے گئے ہیں؟" }
-        ]
-      },
-      {
-        id: "finished_goods_store",
-        nameEn: "Finished Goods Store",
-        nameUr: "تیار شدہ مال گودام",
-        questions: [
-          { pillar: "Sort", en: "Are rejected bundles and unstenciled pallets separated from dispatch stock?", ur: "کیا مسترد شدہ باکسز اور غیر لیبل شدہ پیلیٹس ڈسپیچ اسٹاک سے الگ ہیں؟" },
-          { pillar: "Set in Order", en: "Are pallet loads arranged inside floor grid lines with customer job tags?", ur: "کیا تمام پیلیٹس فلور گرڈ کے اندر کسٹمر ٹیگ کے ساتھ مرتب ہیں؟" },
-          { pillar: "Shine", en: "Are warehouse aisles clean and free of broken wooden pallet splinters?", ur: "کیا گودام کی راہداریاں لکڑی کے ٹکڑوں اور مٹی سے پاک ہیں؟" },
-          { pillar: "Safety", en: "Are stack heights maintained within safe limit markers?", ur: "کیا اسٹیکنگ کی اونچائی محفوظ حد کے اندر رکھی گئی ہے؟" }
-        ]
-      },
-      {
-        id: "maintenance_workshop",
-        nameEn: "Maintenance & Workshop",
-        nameUr: "مینٹیننس اور ورکشاپ",
-        questions: [
-          { pillar: "Sort", en: "Are worn bearings, scrap metal bits, and replaced spare parts removed?", ur: "کیا پرانے بیئرنگ، بیکار لوہا اور بدلے گئے پارٹس ہٹا دیے گئے ہیں؟" },
-          { pillar: "Set in Order", en: "Are wrenches, spanners, and power tools arranged on shadow boards?", ur: "کیا تمام ٹولز اور چابیاں شیڈو بورڈ پر جگہ پر لٹکائی گئی ہیں؟" },
-          { pillar: "Shine", en: "Are oil drips clean and drip pans placed under hydraulic test rigs?", ur: "کیا اوائل کے قطرے صاف کیے گئے ہیں اور ڈرپ پین رکھے گئے ہیں؟" },
-          { pillar: "Safety", en: "Are gas cylinder bottles secured upright with safety chains?", ur: "کیا گیس سلنڈرز کو زنجیر کے ساتھ سیدھا کھڑا کر کے محفوظ کیا گیا ہے؟" }
+          { pillar: "Sort", en: "Are misprinted corrugated sheets and setup waste removed promptly?", ur: "کیا مس پرنٹ شدہ شیٹس اور ویسٹ فوراً ہٹا دیا گیا ہے؟" },
+          { pillar: "Set in Order", en: "Are stereo mounting supplies and ink viscosity cups organized?", ur: "کیا سٹیرو ماؤنٹنگ سامان اور انک کپ ترتیب سے رکھے ہیں؟" },
+          { pillar: "Shine", en: "Are print cylinders and ink circulating pumps thoroughly cleaned?", ur: "کیا پرنٹ سلنڈر اور پمپ مکمل طور پر صاف رکھے گئے ہیں؟" },
+          { pillar: "Safety", en: "Are emergency stop pull-cords and optical guards fully operational?", ur: "کیا ایمرجنسی اسٹاپ بٹن اور گارڈز مکمل فعال ہیں؟" }
         ]
       }
     ];
@@ -491,7 +480,8 @@
             throw new Error(errData.message || `HTTP ${response.status}`);
           }
 
-          const rawImageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
+          const resData = await response.json();
+          const rawImageUrl = resData.content?.download_url || e.target.result;
           
           if (!capaData[key]) capaData[key] = {};
           capaData[key][photoField] = rawImageUrl;
