@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>6S Plant Audit & Management Sheet</title>
-  <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,9 +15,18 @@
     @media print {
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-      .capa-img-thumb { width: 160px !important; height: 140px !important; object-fit: contain !important; border: 1px solid #94a3b8 !important; }
-      table { width: 100% !important; table-layout: fixed !important; }
+      .capa-img-thumb { 
+        display: block !important; 
+        width: 140px !important; 
+        height: 120px !important; 
+        object-fit: cover !important; 
+        border: 1px solid #000 !important;
+        visibility: visible !important;
+      }
+      table { width: 100% !important; table-layout: fixed !important; page-break-inside: auto; }
+      tr { page-break-inside: avoid; page-break-after: auto; }
       td, th { word-wrap: break-word !important; white-space: normal !important; }
+      .print-show-all { display: block !important; }
     }
   </style>
 </head>
@@ -59,7 +67,7 @@
           <span>Export Data File</span>
         </button>
 
-        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+        <button onclick="triggerPrintReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
           <i class="fa-solid fa-print"></i>
           <span>Print / PDF Report</span>
         </button>
@@ -69,33 +77,33 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- GITHUB AUTO-STORAGE CONFIGURATION PANEL -->
+    <!-- GITHUB CONFIGURATION PANEL -->
     <div class="bg-slate-800 text-white rounded-xl shadow-sm border border-slate-700 p-4 no-print">
       <div class="flex items-center justify-between cursor-pointer" onclick="toggleGithubConfig()">
         <div class="flex items-center space-x-2">
-          <i class="fa-brands fa-github text-xl text-blue-400"></i>
-          <h3 class="text-xs font-bold uppercase tracking-wider">GitHub Photo Storage Configuration</h3>
+          <i class="fa-brands fa-github text-xl text-emerald-400"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider">GitHub Photo Storage (Connected)</h3>
         </div>
-        <span class="text-xs text-slate-400" id="ghConfigStatus">Click to Expand / Setup Token</span>
+        <span class="text-xs text-emerald-400 font-bold" id="ghConfigStatus">✅ Token Connected</span>
       </div>
 
       <div id="githubConfigPanel" class="mt-4 pt-3 border-t border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-3 hidden">
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">GitHub Username / Owner</label>
-          <input type="text" id="ghOwner" placeholder="e.g. mohammadabubakaratiq" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+          <label class="block text-[11px] text-slate-400 mb-1">GitHub Owner</label>
+          <input type="text" id="ghOwner" value="mohammadabubakaratiq" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
         </div>
         <div>
           <label class="block text-[11px] text-slate-400 mb-1">Repository Name</label>
-          <input type="text" id="ghRepo" placeholder="e.g. 6s-plant-audit" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+          <input type="text" id="ghRepo" value="6s-plant-audit" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
         </div>
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Target Folder Path</label>
+          <label class="block text-[11px] text-slate-400 mb-1">Folder Path</label>
           <input type="text" id="ghPath" value="audit-photos" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
         </div>
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Personal Access Token (PAT)</label>
+          <label class="block text-[11px] text-slate-400 mb-1">Access Token</label>
           <div class="flex space-x-1">
-            <input type="password" id="ghToken" placeholder="github_pat_..." class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
+            <input type="password" id="ghToken" value="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" class="w-full text-xs bg-slate-900 border border-slate-700 rounded p-2 text-white">
             <button onclick="saveGithubSettings()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 rounded font-bold">Save</button>
           </div>
         </div>
@@ -138,6 +146,21 @@
       </div>
     </div>
 
+    <!-- AREA SUMMARY TABLE (FOR PRINTED REPORT) -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hidden print:block">
+      <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Plant Areas Audit Summary / تمام سائٹس کا خلاصہ</h3>
+      <table class="w-full text-xs border-collapse border border-slate-300">
+        <thead>
+          <tr class="bg-slate-100 border-b border-slate-300 font-bold">
+            <th class="p-2 border border-slate-300 text-left">Area Name</th>
+            <th class="p-2 border border-slate-300 text-left">اردو میں نام</th>
+            <th class="p-2 border border-slate-300 text-center">Score %</th>
+          </tr>
+        </thead>
+        <tbody id="printAreaSummaryTable"></tbody>
+      </table>
+    </div>
+
     <!-- MAIN AUDIT LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -146,7 +169,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
-            <span class="text-blue-600 font-bold">9 Areas</span>
+            <span class="text-blue-600 font-bold" id="areaCountBadge">2 Areas</span>
           </h3>
           <div class="space-y-1.5" id="areaNavList"></div>
         </div>
@@ -189,7 +212,7 @@
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active CAPA Items</h3>
             <span id="capaCountBadge" class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">0 Items</span>
           </div>
-          <p class="text-xs text-slate-500">Scores below 3 auto-generate CAPA action requirements with Before/After photo proof.</p>
+          <p class="text-xs text-slate-500">Scores below 3 auto-generate CAPA action requirements with GitHub photo uploads.</p>
         </div>
       </div>
 
@@ -203,7 +226,7 @@
             <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
             <span>Corrective Action Plan & Photo Proof (CAPA)</span>
           </h2>
-          <p class="text-xs text-slate-500">اصلاحی اقدامات اور قبل/بعد کی تصاویر (Click photo to enlarge)</p>
+          <p class="text-xs text-slate-500">اصلاحی اقدامات اور قبل/بعد کی تصاویر</p>
         </div>
       </div>
 
@@ -227,7 +250,7 @@
   </main>
 
   <!-- SAVED AUDITS HISTORY MODAL -->
-  <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -251,7 +274,7 @@
   </div>
 
   <!-- IMAGE LIGHTBOX MODAL -->
-  <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4" onclick="closeImageModal()">
+  <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4 no-print" onclick="closeImageModal()">
     <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
       <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-red-400">&times; Close Preview</button>
       <img id="lightboxImg" src="" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl border border-slate-700">
@@ -259,6 +282,13 @@
   </div>
 
   <script>
+    const DEFAULT_GH_CONFIG = {
+      owner: "mohammadabubakaratiq",
+      repo: "6s-plant-audit",
+      path: "audit-photos",
+      token: "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"
+    };
+
     const PLANT_AREAS = [
       {
         id: "corrugation",
@@ -305,10 +335,8 @@
       updateScores();
     });
 
-    /* GITHUB CONFIGURATION FUNCTIONS */
     function toggleGithubConfig() {
-      const panel = document.getElementById('githubConfigPanel');
-      panel.classList.toggle('hidden');
+      document.getElementById('githubConfigPanel').classList.toggle('hidden');
     }
 
     function saveGithubSettings() {
@@ -319,81 +347,73 @@
         token: document.getElementById('ghToken').value.trim()
       };
       localStorage.setItem('6s_gh_config', JSON.stringify(config));
-      document.getElementById('ghConfigStatus').innerText = "✅ GitHub Connected";
-      alert("GitHub settings saved successfully!");
+      alert("GitHub settings saved!");
     }
 
     function loadGithubSettings() {
-      const saved = localStorage.getItem('6s_gh_config');
-      if (saved) {
-        const config = JSON.parse(saved);
-        document.getElementById('ghOwner').value = config.owner || '';
-        document.getElementById('ghRepo').value = config.repo || '';
-        document.getElementById('ghPath').value = config.path || 'audit-photos';
-        document.getElementById('ghToken').value = config.token || '';
-        if (config.token && config.owner && config.repo) {
-          document.getElementById('ghConfigStatus').innerText = "✅ GitHub Connected";
-        }
-      }
+      let saved = localStorage.getItem('6s_gh_config');
+      let config = saved ? JSON.parse(saved) : DEFAULT_GH_CONFIG;
+      document.getElementById('ghOwner').value = config.owner || DEFAULT_GH_CONFIG.owner;
+      document.getElementById('ghRepo').value = config.repo || DEFAULT_GH_CONFIG.repo;
+      document.getElementById('ghPath').value = config.path || DEFAULT_GH_CONFIG.path;
+      document.getElementById('ghToken').value = config.token || DEFAULT_GH_CONFIG.token;
     }
 
-    /* UPLOAD PHOTO DIRECTLY TO GITHUB REPOSITORY */
+    function getGithubConfig() {
+      return {
+        owner: document.getElementById('ghOwner').value.trim() || DEFAULT_GH_CONFIG.owner,
+        repo: document.getElementById('ghRepo').value.trim() || DEFAULT_GH_CONFIG.repo,
+        path: document.getElementById('ghPath').value.trim() || DEFAULT_GH_CONFIG.path,
+        token: document.getElementById('ghToken').value.trim() || DEFAULT_GH_CONFIG.token
+      };
+    }
+
     async function uploadPhotoToGithub(event, key, photoField) {
       const file = event.target.files[0];
       if (!file) return;
 
-      const savedConfig = localStorage.getItem('6s_gh_config');
-      if (!savedConfig) {
-        alert("Please configure your GitHub settings at the top of the dashboard first!");
-        toggleGithubConfig();
-        return;
-      }
-
-      const { owner, repo, path, token } = JSON.parse(savedConfig);
-      if (!owner || !repo || !token) {
-        alert("Missing GitHub Repository, Owner, or Access Token!");
-        toggleGithubConfig();
+      const { owner, repo, path, token } = getGithubConfig();
+      if (!token || !owner || !repo) {
+        alert("Missing GitHub Token or Repo Name!");
         return;
       }
 
       const reader = new FileReader();
       reader.onload = async function(e) {
-        const base64Content = e.target.result.split(',')[1]; // Strip data header
+        const base64Content = e.target.result.split(',')[1];
         const filename = `${path}/audit_${Date.now()}_${photoField}.jpg`;
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
 
-        try {
-          // Show upload state
-          event.target.parentElement.innerHTML = '<div class="text-[10px] text-blue-600 font-bold"><i class="fa-solid fa-spinner fa-spin"></i> Uploading to GitHub...</div>';
+        const parentDiv = event.target.parentElement;
+        parentDiv.innerHTML = '<div class="text-[10px] text-blue-600 font-bold p-2"><i class="fa-solid fa-spinner fa-spin text-base"></i><br>Uploading...</div>';
 
+        try {
           const response = await fetch(apiUrl, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/vnd.github.v3+json'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              message: `Upload audit photo: ${filename}`,
+              message: `Upload photo: ${filename}`,
               content: base64Content
             })
           });
 
-          if (!response.ok) {
-            throw new Error(`GitHub Upload Failed (${response.status})`);
-          }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-          const responseData = await response.json();
-          // Use GitHub Raw URL for permanent direct image rendering
           const rawImageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
+          
+          // Pre-load image into browser cache so it shows in print
+          const imgCache = new Image();
+          imgCache.src = rawImageUrl;
 
           if (!capaData[key]) capaData[key] = {};
           capaData[key][photoField] = rawImageUrl;
           renderCapaTable();
-          alert("✅ Photo saved directly to your GitHub repository!");
 
         } catch (err) {
-          alert("Failed to upload image to GitHub: " + err.message);
+          alert("Upload failed: " + err.message);
           renderCapaTable();
         }
       };
@@ -412,8 +432,7 @@
     function setLanguage(lang) {
       currentLang = lang;
       ['en', 'ur', 'dual'].forEach(l => {
-        const btn = document.getElementById(`lang-btn-${l}`);
-        btn.className = l === lang ? "px-3 py-1.5 rounded-md bg-blue-600 text-white font-bold" : "px-3 py-1.5 rounded-md text-slate-400 hover:text-white";
+        document.getElementById(`lang-btn-${l}`).className = l === lang ? "px-3 py-1.5 rounded-md bg-blue-600 text-white font-bold" : "px-3 py-1.5 rounded-md text-slate-400 hover:text-white";
       });
       renderQuestions();
       renderCapaTable();
@@ -503,6 +522,9 @@
       const pillarTotals = { "Sort": 0, "Set in Order": 0, "Shine": 0, "Standardize": 0, "Sustain": 0, "Safety": 0 };
       const pillarCounts = { "Sort": 0, "Set in Order": 0, "Shine": 0, "Standardize": 0, "Sustain": 0, "Safety": 0 };
 
+      const summaryTableBody = document.getElementById('printAreaSummaryTable');
+      if (summaryTableBody) summaryTableBody.innerHTML = '';
+
       PLANT_AREAS.forEach(area => {
         let areaEarned = 0;
         let areaPossible = area.questions.length * 5;
@@ -521,6 +543,16 @@
         const areaPct = Math.round((areaEarned / areaPossible) * 100);
         const navTag = document.getElementById(`nav-score-${area.id}`);
         if (navTag) navTag.innerText = `${areaPct}%`;
+
+        if (summaryTableBody) {
+          summaryTableBody.innerHTML += `
+            <tr>
+              <td class="p-2 border border-slate-300 font-bold">${area.nameEn}</td>
+              <td class="p-2 border border-slate-300 urdu-text">${area.nameUr}</td>
+              <td class="p-2 border border-slate-300 text-center font-bold ${areaPct >= 85 ? 'text-emerald-700' : 'text-amber-700'}">${areaPct}%</td>
+            </tr>
+          `;
+        }
 
         if (PLANT_AREAS[currentAreaIndex].id === area.id) {
           document.getElementById('areaScoreTag').innerText = `Area Score: ${areaPct}%`;
@@ -575,7 +607,7 @@
                     <button onclick="removePhoto('${key}', 'beforeImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
                     <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center block w-28 h-28 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
-                      <i class="fa-brands fa-github text-xl mb-1 text-slate-600"></i> Save to GitHub
+                      <i class="fa-brands fa-github text-xl mb-1 text-emerald-600"></i> Upload Photo
                       <input type="file" accept="image/*" class="hidden" onchange="uploadPhotoToGithub(event, '${key}', 'beforeImg')">
                     </label>
                   `}
@@ -592,7 +624,7 @@
                     <button onclick="removePhoto('${key}', 'afterImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
                     <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center block w-28 h-28 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
-                      <i class="fa-brands fa-github text-xl mb-1 text-slate-600"></i> Save to GitHub
+                      <i class="fa-brands fa-github text-xl mb-1 text-emerald-600"></i> Upload Photo
                       <input type="file" accept="image/*" class="hidden" onchange="uploadPhotoToGithub(event, '${key}', 'afterImg')">
                     </label>
                   `}
@@ -664,6 +696,10 @@
       ];
       radarChartInstance.data.datasets[0].data = scores;
       radarChartInstance.update();
+    }
+
+    function triggerPrintReport() {
+      window.print();
     }
 
     function saveCurrentAudit() {
