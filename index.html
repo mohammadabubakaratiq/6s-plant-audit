@@ -19,11 +19,12 @@
 
     @media print {
       .no-print { display: none !important; }
+      .screen-only-audit { display: none !important; }
       body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
       .capa-img-thumb { 
         display: block !important; 
-        width: 110px !important; 
-        height: 110px !important; 
+        width: 100px !important; 
+        height: 100px !important; 
         object-fit: cover !important; 
         border: 1px solid #000 !important;
         visibility: visible !important;
@@ -32,8 +33,7 @@
       table { width: 100% !important; table-layout: fixed !important; page-break-inside: auto; }
       tr { page-break-inside: avoid; page-break-after: auto; }
       td, th { word-wrap: break-word !important; white-space: normal !important; overflow: hidden; }
-      .score-btn-group { display: none !important; }
-      .selected-score-badge { display: inline-block !important; }
+      .page-break-inside-avoid { page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -154,7 +154,7 @@
     </div>
 
     <!-- PRINT SUMMARY TABLE -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hidden print:block">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hidden print:block mb-6">
       <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Plant Areas Audit Summary / تمام سائٹس کا خلاصہ</h3>
       <table class="w-full text-xs border-collapse border border-slate-300">
         <thead>
@@ -168,8 +168,8 @@
       </table>
     </div>
 
-    <!-- MAIN AUDIT LAYOUT -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- MAIN AUDIT LAYOUT (SCREEN INTERACTIVE VIEW) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 screen-only-audit">
 
       <!-- LEFT SIDEBAR: SELECT AREA -->
       <div class="lg:col-span-3 space-y-4 no-print">
@@ -224,6 +224,9 @@
       </div>
 
     </div>
+
+    <!-- PRINT ONLY: ALL AREAS COMPLETE CHECKLIST -->
+    <div id="printAllAreasContainer" class="hidden print:block space-y-6"></div>
 
     <!-- CAPA TABLE WITH GITHUB PHOTO UPLOAD -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -320,6 +323,8 @@
           { pillar: "Sort", en: "Are damaged wooden/plywood dies and worn ejection rubbers discarded?", ur: "کیا خراب یا ٹوٹی ہوئی لکڑی کی ڈائی اور ربر ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are active cutting dies tagged, cataloged, and stored in die racks?", ur: "کیا استعمال ہونے والی ڈائیز کو ٹیگ لگا کر اور ریک میں ترتیب سے رکھا گیا ہے؟" },
           { pillar: "Shine", en: "Is machine bed free of grease buildup, paper dust, and scrap cutouts?", ur: "کیا مشین بیڈ، گریس اور کاغذ کے برادے سے مکمل صاف ہے؟" },
+          { pillar: "Standardize", en: "Are standard die mounting procedures and die storage layout standards defined?", ur: "کیا معیاری ڈائی ماؤنٹنگ اور ڈائی اسٹوریج کے اصول متعین ہیں؟" },
+          { pillar: "Sustain", en: "Is daily 6S checklist completed by the die cut machine operator?", ur: "کیا روزانہ کی بنیاد پر ڈائی کٹ آپریٹر 6S چیک لسٹ مکمل کر رہا ہے؟" },
           { pillar: "Safety", en: "Is platen safety barrier switch functioning correctly on manual feeding?", ur: "کیا ہاتھ سے فیڈنگ کے دوران سیفٹی سوئچ اور بیریئر صحیح کام کر رہا ہے؟" }
         ]
       },
@@ -331,6 +336,8 @@
           { pillar: "Sort", en: "Are unpasted/pasted scrap pieces and empty adhesive containers removed?", ur: "کیا پیسٹنگ کا ویسٹ اور گلو کے خالی ڈبے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are glue drums and applicators kept in a defined and labelled location?", ur: "کیا گلو ڈرم کو مخصوص اور لیبل شدہ جگہ پر رکھا گیا ہے؟" },
           { pillar: "Shine", en: "Are adhesive spills and dried glue buildup cleaned from floors and tables?", ur: "کیا فرش اور ٹیبلز پر پھیلی ہوئی اور سوکھی ہوئی گلو صاف کر دی گئی ہے؟" },
+          { pillar: "Standardize", en: "Are standard glue mixing ratios and pasting area layout guidelines posted?", ur: "کیا گلو کی تیاری کا معیاری طریقہ اور ایریا لے آؤٹ آویزاں ہے؟" },
+          { pillar: "Sustain", en: "Are daily cleaning and operational 6S audits conducted consistently?", ur: "کیا روزانہ کی بنیاد پر صفائی اور 6S آڈٹ باقاعدگی سے کیا جا رہا ہے؟" },
           { pillar: "Safety", en: "Are workers wearing required PPEs and keeping wiper rags in safe trays?", ur: "کیا ورکرز ضروری سیفٹی سامان استعمال کر رہے ہیں اور ٹولز صحیح جگہ ہیں؟" }
         ]
       },
@@ -342,6 +349,8 @@
           { pillar: "Sort", en: "Are stripped waste cutouts cleared from feeding and exit zones?", ur: "کیا روٹری کے نچلے حصے اور راستے سے کٹا ہوا ویسٹ ہٹا دیا گیا ہے؟" },
           { pillar: "Set in Order", en: "Are manual rotary slotting tools and wrenches organized on tool boards?", ur: "کیا سیٹنگ والے ٹولز اور چابیاں مخصوص بورڈ پر ترتیب سے رکھی گئی ہیں؟" },
           { pillar: "Shine", en: "Are rotary shafts and creasing wheels free of dust and debris buildup?", ur: "کیا روٹری کے شافٹ اور کریزنگ ویلز گرد و غبار سے صاف ہیں؟" },
+          { pillar: "Standardize", en: "Are standard slotting setup guidelines and tool markings followed?", ur: "کیا سلاٹنگ اور کریزنگ کے معیاری طریقہ کار اور ٹول مارکنگ پر عمل ہو رہا ہے؟" },
+          { pillar: "Sustain", en: "Does the operator consistently follow the daily end-of-shift 6S routine?", ur: "کیا آپریٹر شفٹ کے اختتام پر باقاعدگی سے 6S روٹین پر عمل کرتا ہے؟" },
           { pillar: "Safety", en: "Are rotating shaft guards and emergency stop buttons functional?", ur: "کیا گھومنے والے شافٹ کے گارڈز اور ایمرجنسی اسٹاپ بٹن فعال ہیں؟" }
         ]
       },
@@ -353,6 +362,8 @@
           { pillar: "Sort", en: "Are expired ink buckets, empty drums, and dirty washing rags removed?", ur: "کیا پرانی روشنائی کے بالٹی اور گندے کپڑے ہٹا دیے گئے ہیں؟" },
           { pillar: "Set in Order", en: "Are printing stereos/plates cleaned, hung, and indexed correctly?", ur: "کیا پرنٹنگ پلیٹس کو صاف کر کے صحیح انڈیکس کے ساتھ لٹکایا گیا ہے؟" },
           { pillar: "Shine", en: "Are ink pumps, rollers, and tray channels washed post-run?", ur: "کیا پرنٹنگ کے بعد انک پمپ اور رولرز کو اچھے سے دھویا گیا ہے؟" },
+          { pillar: "Standardize", en: "Are ink viscosity standards, color matching guides, and washup routines standardized?", ur: "کیا انک کی وِسکوسیٹی، کلر میچنگ اور واش اپ کا معیاری طریقہ مقرر ہے؟" },
+          { pillar: "Sustain", en: "Are daily pre-run and post-run 6S inspections recorded by the team?", ur: "کیا ٹیم کی طرف سے روزانہ کی 6S انسپکشن چیک لسٹ مکمل کی جا رہی ہے؟" },
           { pillar: "Safety", en: "Are chemical ink wash fluids stored in anti-spill safety trays?", ur: "کیا کیمیکل اور انک واش کی بوتلیں ڈریپ ٹرے میں رکھی گئی ہیں؟" }
         ]
       },
@@ -364,6 +375,8 @@
           { pillar: "Sort", en: "Are set-up trim waste and unused printing ink buckets kept cleared?", ur: "کیا ٹیسٹ پرنٹنگ کا ویسٹ اور بقیہ انک بالٹی ہٹا دی گئی ہیں؟" },
           { pillar: "Set in Order", en: "Are touch control panels, stereos, and doctor blades properly arranged?", ur: "کیا پلیٹس، ڈاکٹر بلیڈز اور کنٹرول پینلز کی جگہیں متعین اور صاف ہیں؟" },
           { pillar: "Shine", en: "Are automated washup units and chamber doctor blades maintained daily?", ur: "کیا واش اپ سسٹم اور چیمبر بلیڈز روزانہ صاف کیے جا رہے ہیں؟" },
+          { pillar: "Standardize", en: "Are standard operating procedures (SOPs) for color setup and maintenance posted?", ur: "کیا کلر سیٹ اپ، سٹیرو ماؤنٹنگ اور مینٹیننس کے ایس او پیز آویزاں ہیں؟" },
+          { pillar: "Sustain", en: "Is the 6S audit checklist verified daily by the shift supervisor and operator?", ur: "کیا شفٹ سپروائزر اور آپریٹر روزانہ 6S چیک لسٹ کی تصدیق کرتے ہیں؟" },
           { pillar: "Safety", en: "Are safety interlocks and light curtains active on motor units?", ur: "کیا موٹر یونٹس کے سیفٹی انٹرلاک سینسرز صحیح کام کر رہے ہیں؟" }
         ]
       },
@@ -375,6 +388,8 @@
           { pillar: "Sort", en: "Are damaged stereos, waste paper, and empty ink buckets removed?", ur: "کیا خراب سٹیرویو، فضول کاغذ اور خالی بالٹیوں کو ہٹا دیا گیا ہے؟" },
           { pillar: "Set in Order", en: "Are 2-color ink pails and manual tools positioned in assigned slots?", ur: "کیا 2 کلر انک بالٹی اور مینول ٹولز جگہ پر رکھے گئے ہیں؟" },
           { pillar: "Shine", en: "Are ink fountains, fountain rollers, and surrounding floor area clean?", ur: "کیا انک فاؤنٹین، رولرز اور ارد گرد کا فرش صاف ستھرا ہے؟" },
+          { pillar: "Standardize", en: "Are standard cleaning protocols and stereo storage procedures clearly documented?", ur: "کیا صفائی کے معیاری پروٹوکول اور سٹیرو اسٹوریج کے طریقہ کار کو قلمبند کیا گیا ہے؟" },
+          { pillar: "Sustain", en: "Are daily 6S check sheets filled out and maintained at the machine station?", ur: "کیا مشین اسٹیشن پر روزانہ کی 6S چیک شیٹس بھری اور برقرار رکھی جا رہی ہیں؟" },
           { pillar: "Safety", en: "Are open gear covers secured properly before running operations?", ur: "کیا مشین چلانے سے پہلے گیئر کورز کو مکمل بند رکھا گیا ہے؟" }
         ]
       },
@@ -386,6 +401,8 @@
           { pillar: "Sort", en: "Are misprinted corrugated sheets and setup waste removed promptly?", ur: "کیا مس پرنٹ شدہ شیٹس اور ویسٹ فوراً ہٹا دیا گیا ہے؟" },
           { pillar: "Set in Order", en: "Are stereo mounting supplies and ink viscosity cups organized?", ur: "کیا سٹیرو ماؤنٹنگ سامان اور انک کپ ترتیب سے رکھے ہیں؟" },
           { pillar: "Shine", en: "Are print cylinders and ink circulating pumps thoroughly cleaned?", ur: "کیا پرنٹ سلنڈر اور پمپ مکمل طور پر صاف رکھے گئے ہیں؟" },
+          { pillar: "Standardize", en: "Are standard color setup SOPs, doctor blade guides, and tool locations enforced?", ur: "کیا کلر سیٹ اپ ایس او پی، بلیڈ کی تبدیلی اور ٹولز کی جگہ پر عمل درآمد ہو رہا ہے؟" },
+          { pillar: "Sustain", en: "Are daily machine 6S standards sustained across all operational shifts?", ur: "کیا تمام شفٹوں میں مشین کے 6S معیار کو باقاعدگی سے برقرار رکھا جا رہا ہے؟" },
           { pillar: "Safety", en: "Are emergency stop pull-cords and optical guards fully operational?", ur: "کیا ایمرجنسی اسٹاپ بٹن اور گارڈز مکمل فعال ہیں؟" }
         ]
       }
@@ -454,12 +471,10 @@
         const base64Content = localDataUrl.split(',')[1];
         const filename = `${path}/audit_${Date.now()}_${photoField}.jpg`;
 
-        // Store local base64 preview immediately for guaranteed zero-break display
         if (!capaData[key]) capaData[key] = {};
         capaData[key][photoField] = localDataUrl;
         renderCapaTable();
 
-        // Perform GitHub upload in background if token exists
         if (token && owner && repo) {
           const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
           try {
@@ -646,6 +661,64 @@
 
       updateRadarChart(pillarTotals, pillarCounts);
       renderCapaTable();
+      renderFullPrintReport();
+    }
+
+    function renderFullPrintReport() {
+      const container = document.getElementById('printAllAreasContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      PLANT_AREAS.forEach(area => {
+        let areaEarned = 0;
+        let areaPossible = area.questions.length * 5;
+
+        const areaBlock = document.createElement('div');
+        areaBlock.className = 'border border-slate-300 rounded-lg p-4 mb-4 page-break-inside-avoid bg-white';
+
+        let qRows = area.questions.map((q, idx) => {
+          const key = `${area.id}_${idx}`;
+          const score = auditScores[key] !== undefined ? auditScores[key] : 5;
+          areaEarned += score;
+          return `
+            <tr class="border-b border-slate-200">
+              <td class="p-2 border border-slate-300 font-bold w-24 text-center">${q.pillar}</td>
+              <td class="p-2 border border-slate-300">
+                <div class="font-medium text-xs">${q.en}</div>
+                <div class="text-[10px] text-slate-600 urdu-text">${q.ur}</div>
+              </td>
+              <td class="p-2 border border-slate-300 text-center font-bold w-20 ${score < 3 ? 'text-red-600' : 'text-slate-800'}">${score} / 5</td>
+            </tr>
+          `;
+        }).join('');
+
+        const areaPct = Math.round((areaEarned / areaPossible) * 100);
+
+        areaBlock.innerHTML = `
+          <div class="flex justify-between items-center border-b-2 border-slate-800 pb-2 mb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">${area.nameEn}</h3>
+              <p class="text-xs text-slate-600 urdu-text">${area.nameUr}</p>
+            </div>
+            <div class="font-bold text-xs bg-slate-100 px-3 py-1 border border-slate-300 rounded">
+              Area Score: ${areaPct}%
+            </div>
+          </div>
+          <table class="w-full text-xs border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 font-bold border-b border-slate-300">
+                <th class="p-2 border border-slate-300 w-24 text-center">Pillar</th>
+                <th class="p-2 border border-slate-300 text-left">Audit Checklist Question</th>
+                <th class="p-2 border border-slate-300 w-20 text-center">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${qRows}
+            </tbody>
+          </table>
+        `;
+        container.appendChild(areaBlock);
+      });
     }
 
     function renderCapaTable() {
@@ -778,6 +851,7 @@
     }
 
     function triggerPrintReport() {
+      renderFullPrintReport();
       window.print();
     }
 
