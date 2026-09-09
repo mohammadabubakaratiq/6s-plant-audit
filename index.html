@@ -12,7 +12,6 @@
     body { font-family: 'Inter', sans-serif; }
     .urdu-text { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; direction: rtl; unicode-bidi: embed; }
     
-    /* Scrollbar styling for Area Navigation */
     #areaNavList::-webkit-scrollbar { width: 5px; }
     #areaNavList::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     #areaNavList::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -154,7 +153,7 @@
       </div>
     </div>
 
-    <!-- AREA SUMMARY TABLE (FOR PRINTED REPORT) -->
+    <!-- PRINT SUMMARY TABLE -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hidden print:block">
       <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Plant Areas Audit Summary / تمام سائٹس کا خلاصہ</h3>
       <table class="w-full text-xs border-collapse border border-slate-300">
@@ -172,14 +171,13 @@
     <!-- MAIN AUDIT LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- LEFT SIDEBAR: SELECT AREA (SCROLLABLE LIST FOR ALL 9 AREAS) -->
+      <!-- LEFT SIDEBAR: SELECT AREA -->
       <div class="lg:col-span-3 space-y-4 no-print">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>SELECT PLANT AREA</span>
             <span class="text-blue-600 font-bold" id="areaCountBadge">9 Areas</span>
           </h3>
-          <!-- Max height & scrollable overflow so all 9 areas render cleanly -->
           <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1" id="areaNavList"></div>
         </div>
 
@@ -227,7 +225,7 @@
 
     </div>
 
-    <!-- CAPA TABLE WITH DIRECT GITHUB PHOTO UPLOAD -->
+    <!-- CAPA TABLE WITH GITHUB PHOTO UPLOAD -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-4 mb-4 gap-2">
         <div>
@@ -258,7 +256,7 @@
 
   </main>
 
-  <!-- SAVED AUDITS HISTORY MODAL (WITH DELETE FUNCTION) -->
+  <!-- SAVED AUDITS MODAL -->
   <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -282,7 +280,7 @@
     </div>
   </div>
 
-  <!-- IMAGE LIGHTBOX MODAL -->
+  <!-- LIGHTBOX PREVIEW -->
   <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4 no-print" onclick="closeImageModal()">
     <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
       <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-red-400">&times; Close Preview</button>
@@ -298,7 +296,6 @@
       token: ""
     };
 
-    // COMPLETE 9 CORRUGATED PACKAGING PLANT AREAS
     const PLANT_AREAS = [
       {
         id: "corrugation",
@@ -386,7 +383,7 @@
         nameEn: "Finished Goods Store",
         nameUr: "تیار شدہ مال گودام",
         questions: [
-          { pillar: "Sort", en: "Are rejected bundles and unstenciled pallets separated from dispatch stock?", ur: "کیا ر مسترد شدہ باکسز اور غیر لیبل شدہ پیلیٹس ڈسپیچ اسٹاک سے الگ ہیں؟" },
+          { pillar: "Sort", en: "Are rejected bundles and unstenciled pallets separated from dispatch stock?", ur: "کیا مسترد شدہ باکسز اور غیر لیبل شدہ پیلیٹس ڈسپیچ اسٹاک سے الگ ہیں؟" },
           { pillar: "Set in Order", en: "Are pallet loads arranged inside floor grid lines with customer job tags?", ur: "کیا تمام پیلیٹس فلور گرڈ کے اندر کسٹمر ٹیگ کے ساتھ مرتب ہیں؟" },
           { pillar: "Shine", en: "Are warehouse aisles clean and free of broken wooden pallet splinters?", ur: "کیا گودام کی راہداریاں لکڑی کے ٹکڑوں اور مٹی سے پاک ہیں؟" },
           { pillar: "Safety", en: "Are stack heights maintained within safe limit markers?", ur: "کیا اسٹیکنگ کی اونچائی محفوظ حد کے اندر رکھی گئی ہے؟" }
@@ -435,7 +432,7 @@
       };
       localStorage.setItem('6s_gh_config', JSON.stringify(config));
       document.getElementById('ghConfigStatus').innerText = "✅ Saved";
-      alert("✅ GitHub credentials saved to local storage!");
+      alert("✅ GitHub credentials saved!");
     }
 
     function loadGithubSettings() {
@@ -462,7 +459,7 @@
 
       const { owner, repo, path, token } = getGithubConfig();
       if (!token || !owner || !repo) {
-        alert("⚠️ Personal Access Token (PAT) is required! Please enter your GitHub token in the GitHub Storage Panel.");
+        alert("⚠️ GitHub Token Required! Please enter your token in the GitHub panel.");
         toggleGithubConfig();
         return;
       }
@@ -489,10 +486,6 @@
             })
           });
 
-          if (response.status === 401) {
-            throw new Error("GitHub Upload Failed (401 Bad Credentials). Please re-enter a valid GitHub token with 'repo' write access.");
-          }
-
           if (!response.ok) {
             const errData = await response.json();
             throw new Error(errData.message || `HTTP ${response.status}`);
@@ -500,16 +493,12 @@
 
           const rawImageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
           
-          // Pre-cache image so it displays properly in print preview
-          const imgCache = new Image();
-          imgCache.src = rawImageUrl;
-
           if (!capaData[key]) capaData[key] = {};
           capaData[key][photoField] = rawImageUrl;
           renderCapaTable();
 
         } catch (err) {
-          alert("❌ " + err.message);
+          alert("❌ Upload failed: " + err.message);
           renderCapaTable();
         }
       };
@@ -534,39 +523,52 @@
       renderCapaTable();
     }
 
-    function renderAreaNav() {
-      const container = document.getElementById('areaNavList');
-      container.innerHTML = '';
-      document.getElementById('areaCountBadge').innerText = `${PLANT_AREAS.length} Areas`;
-
-      PLANT_AREAS.forEach((area, index) => {
-        const isSelected = index === currentAreaIndex;
-        const btn = document.createElement('button');
-        btn.onclick = () => selectArea(index);
-        btn.className = `w-full text-left px-3 py-2.5 rounded-lg border text-xs font-semibold transition flex items-center justify-between ${
-          isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-        }`;
-        
-        btn.innerHTML = `
-          <div class="truncate pr-2">
-            <div class="font-bold truncate">${area.nameEn}</div>
-            <div class="text-[10px] opacity-80 urdu-text leading-tight truncate">${area.nameUr}</div>
-          </div>
-          <span class="text-[10px] px-2 py-0.5 rounded shrink-0 ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}" id="nav-score-${area.id}">100%</span>
-        `;
-        container.appendChild(btn);
-      });
-    }
-
     function selectArea(index) {
+      if (index < 0 || index >= PLANT_AREAS.length) return;
       currentAreaIndex = index;
       renderAreaNav();
       renderQuestions();
       updateScores();
     }
 
+    function renderAreaNav() {
+      const container = document.getElementById('areaNavList');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      document.getElementById('areaCountBadge').innerText = `${PLANT_AREAS.length} Areas`;
+
+      PLANT_AREAS.forEach((area, index) => {
+        const isSelected = index === currentAreaIndex;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          selectArea(index);
+        };
+        btn.className = `w-full text-left px-3 py-2.5 rounded-lg border text-xs font-semibold transition flex items-center justify-between cursor-pointer select-none ${
+          isSelected 
+            ? 'bg-blue-600 border-blue-600 text-white shadow-sm ring-2 ring-blue-400' 
+            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-200'
+        }`;
+        
+        btn.innerHTML = `
+          <div class="truncate pr-2 pointer-events-none">
+            <div class="font-bold truncate pointer-events-none">${area.nameEn}</div>
+            <div class="text-[10px] opacity-80 urdu-text leading-tight truncate pointer-events-none">${area.nameUr}</div>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded shrink-0 pointer-events-none ${
+            isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'
+          }" id="nav-score-${area.id}">100%</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
     function renderQuestions() {
       const area = PLANT_AREAS[currentAreaIndex];
+      if (!area) return;
+
       document.getElementById('currentAreaTitle').innerText = area.nameEn;
       document.getElementById('currentAreaUrduTitle').innerText = area.nameUr;
 
@@ -575,7 +577,7 @@
 
       area.questions.forEach((q, qIndex) => {
         const key = `${area.id}_${qIndex}`;
-        const currentScore = auditScores[key] || 5;
+        const currentScore = auditScores[key] !== undefined ? auditScores[key] : 5;
 
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3";
@@ -594,7 +596,7 @@
             </div>
             <div class="flex items-center space-x-1 shrink-0 score-btn-group">
               ${[1,2,3,4,5].map(scoreVal => `
-                <button onclick="setScore('${key}', ${scoreVal})" class="w-7 h-7 rounded-lg text-xs font-bold transition ${
+                <button type="button" onclick="setScore('${key}', ${scoreVal})" class="w-7 h-7 rounded-lg text-xs font-bold transition ${
                   currentScore === scoreVal 
                     ? (scoreVal < 3 ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white')
                     : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
@@ -653,7 +655,7 @@
           `;
         }
 
-        if (PLANT_AREAS[currentAreaIndex].id === area.id) {
+        if (PLANT_AREAS[currentAreaIndex] && PLANT_AREAS[currentAreaIndex].id === area.id) {
           document.getElementById('areaScoreTag').innerText = `Area Score: ${areaPct}%`;
         }
 
@@ -671,6 +673,7 @@
 
     function renderCapaTable() {
       const tbody = document.getElementById('capaTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
       let capaItemsCount = 0;
 
@@ -703,7 +706,7 @@
                 <div class="space-y-1.5 flex flex-col items-center">
                   ${item.beforeImg ? `
                     <img src="${item.beforeImg}" onclick="openImageModal('${item.beforeImg}')" class="w-24 h-24 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
-                    <button onclick="removePhoto('${key}', 'beforeImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
+                    <button type="button" onclick="removePhoto('${key}', 'beforeImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
                     <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-2 text-center block w-24 h-24 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
                       <i class="fa-brands fa-github text-lg mb-1 text-emerald-600"></i> Upload Photo
@@ -720,7 +723,7 @@
                 <div class="space-y-1.5 flex flex-col items-center">
                   ${item.afterImg ? `
                     <img src="${item.afterImg}" onclick="openImageModal('${item.afterImg}')" class="w-24 h-24 object-cover rounded-lg shadow-sm border border-slate-300 cursor-pointer capa-img-thumb" title="Click to enlarge">
-                    <button onclick="removePhoto('${key}', 'afterImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
+                    <button type="button" onclick="removePhoto('${key}', 'afterImg')" class="text-[10px] text-red-600 underline no-print">Remove</button>
                   ` : `
                     <label class="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-2 text-center block w-24 h-24 flex flex-col items-center justify-center text-[10px] text-slate-500 no-print">
                       <i class="fa-brands fa-github text-lg mb-1 text-emerald-600"></i> Upload Photo
@@ -881,8 +884,8 @@
               <div class="text-[10px] text-blue-600 font-bold mt-0.5">Overall Score: ${audit.overallPct}</div>
             </div>
             <div class="flex items-center space-x-1.5 shrink-0">
-              <button onclick="loadAuditFromHistory(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">Open</button>
-              <button onclick="deleteSavedAudit(${index})" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition" title="Delete Report">
+              <button type="button" onclick="loadAuditFromHistory(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">Open</button>
+              <button type="button" onclick="deleteSavedAudit(${index})" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition" title="Delete Report">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
